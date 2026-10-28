@@ -1,0 +1,471 @@
+import os
+import uuid
+import random
+import shutil
+from datetime import datetime
+from typing import Optional, List
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
+from ..database import complaints_col, status_history_col, notifications_col, users_col
+from ..models import ComplaintCreate, StatusUpdate, DepartmentAssign, SupportComplaint
+from ..routers.auth import get_current_user, require_current_user
+from ..ai_engine import analyze_issue, find_duplicate_issues
+
+router = APIRouter(prefix="/api/issues", tags=["Civic Issues"])
+
+UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "uploads"))
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_DIR, "proofs"), exist_ok=True)
+
+def generate_complaint_id() -> str:
+    year = datetime.utcnow().year
+    rand_digits = random.randint(1000, 9999)
+    # Check uniqueness
+    cid = f"CC-{year}-{rand_digits}"
+    while complaints_col.find_one({"complaint_id": cid}):
+        rand_digits = random.randint(1000, 9999)
+        cid = f"CC-{year}-{rand_digits}"
+    return cid
+
+def create_notification(user_id: Optional[str], title: str, message: str, complaint_id: str, n_type: str = "status_change"):
+    if not user_id:
+        return
+    notif = {
+        "_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "complaint_id": complaint_id,
+        "title": title,
+        "message": message,
+        "type": n_type,
+        "is_read": False,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    notifications_col.insert_one(notif)
+
+@router.post("/upload")
+async def upload_image(file: UploadFile = File(...)):
+    ext = os.path.splitext(file.filename)[1].lower() or ".jpg"
+    filename = f"{uuid.uuid4().hex}{ext}"
+    target_path = os.path.join(UPLOAD_DIR, filename)
+    with open(target_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"url": f"/uploads/{filename}", "filename": filename}
+
+@router.post("/upload-proof")
+async def upload_proof(file: UploadFile = File(...)):
+    ext = os.path.splitext(file.filename)[1].lower() or ".jpg"
+    filename = f"proof_{uuid.uuid4().hex}{ext}"
+    target_path = os.path.join(UPLOAD_DIR, "proofs", filename)
+    with open(target_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"url": f"/uploads/proofs/{filename}", "filename": filename}
+
+@router.post("")
+def create_issue(
+    req: ComplaintCreate,
+    current_user: Optional[dict] = Depends(get_current_user)
+):
+    """
+    Submits a civic issue:
+    1. Runs spatial duplicate detection.
+    2. Runs AI multimodal analysis (Image + NLP + Multi-factor priority).
+    3. Auto-routes to recommended department.
+    4. Records complaint and status timeline.
+    """
+    citizen_id = str(current_user.get("_id") or current_user.get("id")) if current_user else "anonymous"
+    citizen_name = current_user.get("name", "Citizen Reporter") if current_user else "Citizen Reporter"
+    citizen_email = current_user.get("email", "") if current_user else ""
+    citizen_phone = current_user.get("phone", "") if current_user else ""
+
+    # Check for active complaints nearby to find duplicates
+    active_issues = complaints_col.find({"status": {"$ne": "Resolved"}})
+    duplicate_info = find_duplicate_issues(
+        latitude=req.latitude,
+        longitude=req.longitude,
+        title=req.title,
+        description=req.description,
+        category=req.category or "Other",
+        existing_issues=active_issues,
+        distance_threshold_meters=150.0
+    )
+
+    report_count = 1
+    linked_parent_id = None
+    if duplicate_info:
+        linked_parent_id = duplicate_info["parent_id"]
+        # Increment parent's crowd count
+        parent = complaints_col.find_one({"complaint_id": linked_parent_id})
+        if parent:
+            new_crowd_count = parent.get("report_count", 1) + 1
+            complaints_col.update_one(
+                {"complaint_id": linked_parent_id},
+                {
+                    "$inc": {"report_count": 1},
+                    "$push": {
+                        "duplicate_reports": {
+                            "reporter_name": citizen_name,
+                            "timestamp": datetime.utcnow().isoformat(),
+                            "description": req.description
+                        }
+                    }
+                }
+            )
+            # Recalculate parent's priority because citizen count increased!
+            re_ai = analyze_issue(
+                title=parent["title"],
+                description=parent["description"],
+                user_category=parent.get("category"),
+                location_name=parent.get("location", {}).get("address", ""),
+                nearby_reports_count=new_crowd_count
+            )
+            complaints_col.update_one(
+                {"complaint_id": linked_parent_id},
+                {
+                    "$set": {
+                        "priority": re_ai["priority_level"],
+                        "priority_score": re_ai["priority_score"],
+                        "ai_analysis": re_ai
+                    }
+                }
+            )
+
+    # Local image path if uploaded
+    local_img_path = None
+    if req.image_url and req.image_url.startswith("/uploads/"):
+        filename = req.image_url.replace("/uploads/", "")
+        local_img_path = os.path.join(UPLOAD_DIR, filename)
+
+    # Run AI Analysis
+    ai_result = analyze_issue(
+        title=req.title,
+        description=req.description,
+        user_category=req.category,
+        image_path=local_img_path,
+        location_name=req.address,
+        latitude=req.latitude,
+        longitude=req.longitude,
+        nearby_reports_count=report_count
+    )
+
+    complaint_id = generate_complaint_id()
+    now_iso = datetime.utcnow().isoformat()
+
+    complaint_doc = {
+        "_id": str(uuid.uuid4()),
+        "complaint_id": complaint_id,
+        "title": req.title,
+        "description": req.description,
+        "category": ai_result["detected_category"],
+        "user_selected_category": req.category,
+        "status": "Assigned",  # Auto-routed immediately
+        "priority": ai_result["priority_level"],
+        "priority_score": ai_result["priority_score"],
+        "department": ai_result["recommended_department"],
+        "assigned_officer": None,
+        "image_url": req.image_url,
+        "resolution_proof_url": None,
+        "resolution_notes": None,
+        "location": {
+            "address": req.address,
+            "landmark": req.landmark or "",
+            "latitude": req.latitude,
+            "longitude": req.longitude,
+            "coordinates": [req.longitude, req.latitude]  # GeoJSON [lng, lat]
+        },
+        "citizen": {
+            "id": citizen_id,
+            "name": citizen_name,
+            "email": citizen_email,
+            "phone": citizen_phone
+        },
+        "ai_analysis": ai_result,
+        "report_count": 1,
+        "duplicate_of": linked_parent_id,
+        "duplicate_reports": [],
+        "created_at": now_iso,
+        "updated_at": now_iso
+    }
+
+    complaints_col.insert_one(complaint_doc)
+
+    # Create initial status history entry
+    history_entry = {
+        "_id": str(uuid.uuid4()),
+        "complaint_id": complaint_id,
+        "status": "Submitted",
+        "title": "Complaint Submitted",
+        "description": f"Complaint recorded by {citizen_name}. AI categorized as {ai_result['detected_category']}.",
+        "updated_by": citizen_name,
+        "timestamp": now_iso
+    }
+    status_history_col.insert_one(history_entry)
+
+    # Auto-routing history entry
+    routing_entry = {
+        "_id": str(uuid.uuid4()),
+        "complaint_id": complaint_id,
+        "status": "Assigned",
+        "title": f"Auto-Routed to {ai_result['recommended_department']}",
+        "description": f"AI assigned {ai_result['priority_badge']} with {ai_result['confidence_percentage']}% confidence. Recommended action dispatched.",
+        "updated_by": "CivicConnect AI Engine",
+        "timestamp": now_iso
+    }
+    status_history_col.insert_one(routing_entry)
+
+    # Send Notification to Citizen
+    create_notification(
+        user_id=citizen_id,
+        title=f"Complaint {complaint_id} Registered",
+        message=f"Your complaint has been verified by AI and auto-routed to {ai_result['recommended_department']} ({ai_result['priority_badge']}).",
+        complaint_id=complaint_id,
+        n_type="registered"
+    )
+
+    return complaint_doc
+
+@router.get("")
+def list_issues(
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    department: Optional[str] = None,
+    category: Optional[str] = None,
+    citizen_id: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 100
+):
+    query = {}
+    if status and status != "All":
+        query["status"] = status
+    if priority and priority != "All":
+        query["priority"] = priority
+    if department and department != "All":
+        query["department"] = department
+    if category and category != "All":
+        query["category"] = category
+    if citizen_id:
+        query["citizen.id"] = citizen_id
+
+    issues = complaints_col.find(query, sort=[("created_at", -1)], limit=limit)
+
+    if search:
+        s = search.lower()
+        issues = [
+            iss for iss in issues
+            if s in iss.get("title", "").lower()
+            or s in iss.get("complaint_id", "").lower()
+            or s in iss.get("description", "").lower()
+            or s in iss.get("location", {}).get("address", "").lower()
+        ]
+
+    return issues
+
+@router.get("/track/{query}")
+def track_issue(query: str):
+    """
+    Finds complaint by ID, citizen phone, or email.
+    """
+    clean_q = query.strip()
+    
+    # Check by complaint_id
+    issue = complaints_col.find_one({"complaint_id": clean_q.upper()})
+    if not issue:
+        # Case-insensitive complaint_id check
+        all_issues = complaints_col.find()
+        for iss in all_issues:
+            if iss.get("complaint_id", "").lower() == clean_q.lower():
+                issue = iss
+                break
+    
+    if not issue:
+        # Check by phone
+        issue = complaints_col.find_one({"citizen.phone": clean_q})
+    
+    if not issue:
+        # Check by email
+        issue = complaints_col.find_one({"citizen.email": clean_q.lower()})
+
+    if not issue:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No civic complaint found matching '{query}'. Please verify your Complaint ID, Phone, or Email."
+        )
+
+    # Fetch status history timeline
+    cid = issue.get("complaint_id")
+    history = status_history_col.find({"complaint_id": cid}, sort=[("timestamp", 1)])
+    issue["status_history"] = history
+    return issue
+
+@router.get("/{id}")
+def get_issue(id: str):
+    issue = complaints_col.find_one({"_id": id})
+    if not issue:
+        issue = complaints_col.find_one({"complaint_id": id})
+    if not issue:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    cid = issue.get("complaint_id")
+    history = status_history_col.find({"complaint_id": cid}, sort=[("timestamp", 1)])
+    issue["status_history"] = history
+    return issue
+
+@router.patch("/{id}/status")
+def update_status(
+    id: str,
+    req: StatusUpdate,
+    current_user: Optional[dict] = Depends(get_current_user)
+):
+    issue = complaints_col.find_one({"_id": id}) or complaints_col.find_one({"complaint_id": id})
+    if not issue:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    actor_name = current_user.get("name", "Department Officer") if current_user else "Authorized Officer"
+    cid = issue["complaint_id"]
+    now_iso = datetime.utcnow().isoformat()
+
+    update_payload = {
+        "status": req.status,
+        "updated_at": now_iso
+    }
+    if req.notes:
+        update_payload["status_notes"] = req.notes
+    if req.resolution_proof_url:
+        update_payload["resolution_proof_url"] = req.resolution_proof_url
+        update_payload["resolved_at"] = now_iso
+
+    complaints_col.update_one({"complaint_id": cid}, {"$set": update_payload})
+
+    # Timeline entry
+    history_entry = {
+        "_id": str(uuid.uuid4()),
+        "complaint_id": cid,
+        "status": req.status,
+        "title": f"Status changed to {req.status}",
+        "description": req.notes or f"Complaint updated to {req.status} by {actor_name}.",
+        "proof_url": req.resolution_proof_url,
+        "updated_by": actor_name,
+        "timestamp": now_iso
+    }
+    status_history_col.insert_one(history_entry)
+
+    # Citizen notification
+    citizen_id = issue.get("citizen", {}).get("id")
+    if citizen_id and citizen_id != "anonymous":
+        msg = f"Your complaint {cid} status has been updated to '{req.status}'."
+        if req.status == "Resolved":
+            msg += " Resolution proof has been uploaded. Thank you for making our city better!"
+        create_notification(
+            user_id=citizen_id,
+            title=f"Complaint {cid}: {req.status}",
+            message=msg,
+            complaint_id=cid,
+            n_type="status_change"
+        )
+
+    return {"success": True, "status": req.status, "complaint_id": cid}
+
+@router.patch("/{id}/assign")
+def assign_department(
+    id: str,
+    req: DepartmentAssign,
+    current_user: Optional[dict] = Depends(get_current_user)
+):
+    issue = complaints_col.find_one({"_id": id}) or complaints_col.find_one({"complaint_id": id})
+    if not issue:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    actor_name = current_user.get("name", "Government Authority") if current_user else "Admin Authority"
+    cid = issue["complaint_id"]
+    now_iso = datetime.utcnow().isoformat()
+
+    complaints_col.update_one(
+        {"complaint_id": cid},
+        {
+            "$set": {
+                "department": req.department,
+                "assigned_officer": req.assigned_officer_id,
+                "status": "Assigned",
+                "updated_at": now_iso
+            }
+        }
+    )
+
+    # Timeline
+    history_entry = {
+        "_id": str(uuid.uuid4()),
+        "complaint_id": cid,
+        "status": "Assigned",
+        "title": f"Reassigned to {req.department}",
+        "description": req.notes or f"Manually assigned to {req.department} by {actor_name}.",
+        "updated_by": actor_name,
+        "timestamp": now_iso
+    }
+    status_history_col.insert_one(history_entry)
+
+    # Citizen Notification
+    citizen_id = issue.get("citizen", {}).get("id")
+    if citizen_id and citizen_id != "anonymous":
+        create_notification(
+            user_id=citizen_id,
+            title=f"Complaint {cid} Department Updated",
+            message=f"Your complaint has been assigned to {req.department}.",
+            complaint_id=cid,
+            n_type="reassigned"
+        )
+
+    return {"success": True, "department": req.department}
+
+@router.post("/{id}/support")
+def support_issue(
+    id: str,
+    req: SupportComplaint,
+    current_user: Optional[dict] = Depends(get_current_user)
+):
+    """
+    Citizen 'I also have this issue' crowd upvote:
+    Elevates report count and triggers AI priority recalculation.
+    """
+    issue = complaints_col.find_one({"_id": id}) or complaints_col.find_one({"complaint_id": id})
+    if not issue:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    cid = issue["complaint_id"]
+    user_name = current_user.get("name", "Concerned Citizen") if current_user else "Concerned Citizen"
+    now_iso = datetime.utcnow().isoformat()
+
+    new_count = issue.get("report_count", 1) + 1
+    
+    # Recalculate priority
+    re_ai = analyze_issue(
+        title=issue["title"],
+        description=issue["description"],
+        user_category=issue.get("category"),
+        location_name=issue.get("location", {}).get("address", ""),
+        nearby_reports_count=new_count
+    )
+
+    complaints_col.update_one(
+        {"complaint_id": cid},
+        {
+            "$inc": {"report_count": 1},
+            "$push": {
+                "duplicate_reports": {
+                    "reporter_name": user_name,
+                    "timestamp": now_iso,
+                    "notes": req.notes or "Also affected by this civic issue."
+                }
+            },
+            "$set": {
+                "priority": re_ai["priority_level"],
+                "priority_score": re_ai["priority_score"],
+                "ai_analysis": re_ai,
+                "updated_at": now_iso
+            }
+        }
+    )
+
+    return {
+        "success": True,
+        "new_report_count": new_count,
+        "new_priority": re_ai["priority_level"],
+        "message": f"Support recorded! Priority recalculated to {re_ai['priority_level']} due to elevated crowd reports."
+    }

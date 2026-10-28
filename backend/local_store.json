@@ -1,0 +1,1101 @@
+{
+  "users": [
+    {
+      "_id": "user_citizen_1",
+      "name": "Arun Sharma",
+      "email": "citizen@smartcity.gov",
+      "password_hash": "ed255a56454b98d58341b3cc190d413c67e42afaca1ea18a91f5446d01717e26",
+      "phone": "+91 98765 43210",
+      "role": "citizen",
+      "department": null,
+      "created_at": "2026-10-28T05:46:58.930680"
+    },
+    {
+      "_id": "user_admin_1",
+      "name": "Dr. Rajesh Verma (Municipal Commissioner)",
+      "email": "admin@smartcity.gov",
+      "password_hash": "dc0a46f2210fb79f91b5f31110a9f29729b11936be894fe4fc11e50756b036c7",
+      "phone": "+91 98111 22334",
+      "role": "admin",
+      "department": "Smart City Central Administration",
+      "created_at": "2026-10-28T05:46:58.930701"
+    },
+    {
+      "_id": "user_officer_roads",
+      "name": "Eng. Suresh Kumar",
+      "email": "officer.roads@smartcity.gov",
+      "password_hash": "7d8fdeddb5e05241a988603b1ab11ad481787d3db6f6e335494df28dcd6bb43c",
+      "phone": "+91 98450 11223",
+      "role": "officer",
+      "department": "Roads and Transportation Department",
+      "created_at": "2026-10-28T05:46:58.930707"
+    },
+    {
+      "_id": "user_officer_sanitation",
+      "name": "Meera Nair",
+      "email": "officer.sanitation@smartcity.gov",
+      "password_hash": "7d8fdeddb5e05241a988603b1ab11ad481787d3db6f6e335494df28dcd6bb43c",
+      "phone": "+91 98450 33445",
+      "role": "officer",
+      "department": "Sanitation Department",
+      "created_at": "2026-10-28T05:46:58.930712"
+    },
+    {
+      "_id": "user_officer_electricity",
+      "name": "Kavita Reddy",
+      "email": "officer.electricity@smartcity.gov",
+      "password_hash": "7d8fdeddb5e05241a988603b1ab11ad481787d3db6f6e335494df28dcd6bb43c",
+      "phone": "+91 98450 55667",
+      "role": "officer",
+      "department": "Electricity Department",
+      "created_at": "2026-10-28T05:46:58.930717"
+    },
+    {
+      "_id": "user_officer_water",
+      "name": "Vikram Patil",
+      "email": "officer.water@smartcity.gov",
+      "password_hash": "7d8fdeddb5e05241a988603b1ab11ad481787d3db6f6e335494df28dcd6bb43c",
+      "phone": "+91 98450 77889",
+      "role": "officer",
+      "department": "Water Supply Department",
+      "created_at": "2026-10-28T05:46:58.930721"
+    },
+    {
+      "_id": "f3ad9476-a279-4e17-b341-dca1f339ccf4",
+      "id": "f3ad9476-a279-4e17-b341-dca1f339ccf4",
+      "name": "Nanda gowthami",
+      "email": "noneofyourbusinessng02@gmail.com",
+      "password_hash": "f594dc26e0aa0bd3de81856c338146cf7686d1ed3c8cdca8881240fb661a8775",
+      "phone": "9515910834",
+      "role": "citizen",
+      "department": null,
+      "created_at": "2026-10-28T05:54:55.242704"
+    }
+  ],
+  "complaints": [
+    {
+      "_id": "ac31e727-b6f0-449c-bec4-199018d02799",
+      "complaint_id": "CC-2026-1042",
+      "title": "Massive deep pothole causing vehicle damage and traffic bottleneck",
+      "description": "There is a massive 2-foot deep pothole on MG Road near the Metro Station entrance. Multiple two-wheelers have skidded and cars are suffering axle damage. It poses an immediate accident danger during peak hours.",
+      "category": "Pothole",
+      "user_selected_category": "Pothole",
+      "status": "In Progress",
+      "priority": "HIGH",
+      "priority_score": 86,
+      "department": "Roads and Transportation Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_pothole.jpg",
+      "resolution_proof_url": null,
+      "resolution_notes": null,
+      "location": {
+        "address": "MG Road, near Metro Pillar 142, Central Ward",
+        "landmark": "Opposite Metro Station Gate 2",
+        "latitude": 12.975,
+        "longitude": 77.605,
+        "coordinates": [
+          77.605,
+          12.975
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Pothole",
+        "confidence_percentage": 92,
+        "priority_level": "HIGH",
+        "priority_badge": "\ud83d\udd34 High Priority",
+        "priority_score": 86,
+        "priority_factors": {
+          "severity_score": 30,
+          "safety_risk_score": 21,
+          "location_importance": 15,
+          "crowd_density_score": 20,
+          "nearby_reports_count": 9
+        },
+        "recommended_department": "Roads and Transportation Department",
+        "hazard_triggers": [
+          "accident",
+          "danger"
+        ],
+        "ai_explanation": "Significant safety hazard triggers: accident, danger \u2022 Elevated community impact: reported by 9 citizens \u2022 High-traffic zone detected (metro, station)",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 9,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #2",
+          "timestamp": "2026-10-28T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #3",
+          "timestamp": "2026-10-27T23:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #4",
+          "timestamp": "2026-10-27T20:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #5",
+          "timestamp": "2026-10-27T17:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #6",
+          "timestamp": "2026-10-27T14:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #7",
+          "timestamp": "2026-10-27T11:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #8",
+          "timestamp": "2026-10-27T08:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-26T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "4e5c7fd8-42c8-4a99-acdc-78ae1c5da269",
+      "complaint_id": "CC-2026-1043",
+      "title": "Overflowing garbage dump attracting stray animals and severe stench",
+      "description": "The community waste bin has not been cleared for 4 days. Waste is spilling onto the roadway, blocking pedestrian footpath and causing severe sanitary risk to adjacent vegetable shops.",
+      "category": "Garbage Problem",
+      "user_selected_category": "Garbage Problem",
+      "status": "Assigned",
+      "priority": "MEDIUM",
+      "priority_score": 49,
+      "department": "Sanitation Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_garbage.jpg",
+      "resolution_proof_url": null,
+      "resolution_notes": null,
+      "location": {
+        "address": "Sector 4 Commercial Complex, Gandhi Bazaar",
+        "landmark": "Near Municipal Park Gate",
+        "latitude": 12.962,
+        "longitude": 77.585,
+        "coordinates": [
+          77.585,
+          12.962
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Garbage Problem",
+        "confidence_percentage": 92,
+        "priority_level": "MEDIUM",
+        "priority_badge": "\ud83d\udfe0 Medium Priority",
+        "priority_score": 49,
+        "priority_factors": {
+          "severity_score": 22,
+          "safety_risk_score": 8,
+          "location_importance": 5,
+          "crowd_density_score": 14,
+          "nearby_reports_count": 4
+        },
+        "recommended_department": "Sanitation Department",
+        "hazard_triggers": [
+          "severe"
+        ],
+        "ai_explanation": "Elevated community impact: reported by 4 citizens",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 4,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #2",
+          "timestamp": "2026-10-28T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #3",
+          "timestamp": "2026-10-27T23:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-27T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "f1b76462-b095-4cdf-9bd7-6d884cdd35e9",
+      "complaint_id": "CC-2026-1044",
+      "title": "Broken streetlights leaving entire street in pitch darkness",
+      "description": "Three consecutive streetlights are non-functional on 8th Cross Road. The whole stretch is pitch dark after 7 PM, creating safety concerns for women and evening pedestrians.",
+      "category": "Broken Streetlight",
+      "user_selected_category": "Broken Streetlight",
+      "status": "Assigned",
+      "priority": "LOW",
+      "priority_score": 33,
+      "department": "Electricity Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_streetlight.jpg",
+      "resolution_proof_url": null,
+      "resolution_notes": null,
+      "location": {
+        "address": "8th Cross, Indiranagar 2nd Stage",
+        "landmark": "Near BDA Community Hall",
+        "latitude": 12.9785,
+        "longitude": 77.6405,
+        "coordinates": [
+          77.6405,
+          12.9785
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Broken Streetlight",
+        "confidence_percentage": 92,
+        "priority_level": "LOW",
+        "priority_badge": "\ud83d\udfe2 Low Priority",
+        "priority_score": 33,
+        "priority_factors": {
+          "severity_score": 20,
+          "safety_risk_score": 0,
+          "location_importance": 5,
+          "crowd_density_score": 8,
+          "nearby_reports_count": 2
+        },
+        "recommended_department": "Electricity Department",
+        "hazard_triggers": [],
+        "ai_explanation": "Elevated community impact: reported by 2 citizens",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 2,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-25T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "64d68761-cdbf-46b3-bd1f-716272ba24bc",
+      "complaint_id": "CC-2026-1045",
+      "title": "Major potable water pipeline burst gushing thousands of liters",
+      "description": "An underground supply pipeline has fractured under high pressure. Clean drinking water is gushing across the road and flooding the basements of nearby shops. Immediate valve shutdown required!",
+      "category": "Water Leakage",
+      "user_selected_category": "Water Leakage",
+      "status": "In Progress",
+      "priority": "MEDIUM",
+      "priority_score": 53,
+      "department": "Water Supply Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_water.jpg",
+      "resolution_proof_url": null,
+      "resolution_notes": null,
+      "location": {
+        "address": "Ring Road Service Lane, Koramangala 5th Block",
+        "landmark": "Near Water Booster Station",
+        "latitude": 12.935,
+        "longitude": 77.624,
+        "coordinates": [
+          77.624,
+          12.935
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Water Leakage",
+        "confidence_percentage": 92,
+        "priority_level": "MEDIUM",
+        "priority_badge": "\ud83d\udfe0 Medium Priority",
+        "priority_score": 53,
+        "priority_factors": {
+          "severity_score": 28,
+          "safety_risk_score": 0,
+          "location_importance": 5,
+          "crowd_density_score": 20,
+          "nearby_reports_count": 7
+        },
+        "recommended_department": "Water Supply Department",
+        "hazard_triggers": [],
+        "ai_explanation": "Elevated community impact: reported by 7 citizens",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 7,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #2",
+          "timestamp": "2026-10-28T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #3",
+          "timestamp": "2026-10-27T23:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #4",
+          "timestamp": "2026-10-27T20:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #5",
+          "timestamp": "2026-10-27T17:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #6",
+          "timestamp": "2026-10-27T14:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-27T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "f770d957-3e8c-4950-a9b2-2d51d26517bc",
+      "complaint_id": "CC-2026-1046",
+      "title": "Clogged storm drainage overflowing black sewage water",
+      "description": "The main roadside stormwater drain is choked with silt and plastic debris. Dirty sewage water is backing up onto the pavement and entering residential compound gates.",
+      "category": "Drainage Problem",
+      "user_selected_category": "Drainage Problem",
+      "status": "Assigned",
+      "priority": "MEDIUM",
+      "priority_score": 44,
+      "department": "Municipal Engineering Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_drainage.jpg",
+      "resolution_proof_url": null,
+      "resolution_notes": null,
+      "location": {
+        "address": "Subhash Nagar Main Road, Low-lying Sector",
+        "landmark": "Near Government Dispensary",
+        "latitude": 12.981,
+        "longitude": 77.575,
+        "coordinates": [
+          77.575,
+          12.981
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Drainage Problem",
+        "confidence_percentage": 92,
+        "priority_level": "MEDIUM",
+        "priority_badge": "\ud83d\udfe0 Medium Priority",
+        "priority_score": 44,
+        "priority_factors": {
+          "severity_score": 26,
+          "safety_risk_score": 0,
+          "location_importance": 10,
+          "crowd_density_score": 8,
+          "nearby_reports_count": 3
+        },
+        "recommended_department": "Municipal Engineering Department",
+        "hazard_triggers": [],
+        "ai_explanation": "Elevated community impact: reported by 3 citizens \u2022 High-traffic zone detected (main road)",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 3,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #2",
+          "timestamp": "2026-10-28T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-26T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "cf331baa-0af6-429f-aa8e-c630b7209f68",
+      "complaint_id": "CC-2026-1047",
+      "title": "DANGEROUS: Hanging live electric wire sparking near school gate",
+      "description": "High voltage overhead power line has snapped and is dangling only 5 feet above the pedestrian walkway right outside the school entrance. Continuous electric sparks observed. High electrocution hazard!",
+      "category": "Public Safety Issue",
+      "user_selected_category": "Public Safety Issue",
+      "status": "In Progress",
+      "priority": "HIGH",
+      "priority_score": 93,
+      "department": "Emergency / Public Safety Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_hazard.jpg",
+      "resolution_proof_url": null,
+      "resolution_notes": null,
+      "location": {
+        "address": "Residency Road, outside St. Joseph Primary School",
+        "landmark": "School Main Pedestrian Gate",
+        "latitude": 12.972,
+        "longitude": 77.608,
+        "coordinates": [
+          77.608,
+          12.972
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Public Safety Issue",
+        "confidence_percentage": 92,
+        "priority_level": "HIGH",
+        "priority_badge": "\ud83d\udd34 High Priority",
+        "priority_score": 93,
+        "priority_factors": {
+          "severity_score": 38,
+          "safety_risk_score": 25,
+          "location_importance": 10,
+          "crowd_density_score": 20,
+          "nearby_reports_count": 12
+        },
+        "recommended_department": "Emergency / Public Safety Department",
+        "hazard_triggers": [
+          "danger",
+          "sparking",
+          "school"
+        ],
+        "ai_explanation": "Significant safety hazard triggers: danger, sparking, school \u2022 Elevated community impact: reported by 12 citizens \u2022 High-traffic zone detected (school)",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 12,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #2",
+          "timestamp": "2026-10-28T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #3",
+          "timestamp": "2026-10-27T23:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #4",
+          "timestamp": "2026-10-27T20:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #5",
+          "timestamp": "2026-10-27T17:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #6",
+          "timestamp": "2026-10-27T14:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #7",
+          "timestamp": "2026-10-27T11:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #8",
+          "timestamp": "2026-10-27T08:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #9",
+          "timestamp": "2026-10-27T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #10",
+          "timestamp": "2026-10-27T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #11",
+          "timestamp": "2026-10-26T23:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-28T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "9883490b-4d20-4926-a0d2-949bae7a22ae",
+      "complaint_id": "CC-2026-1038",
+      "title": "Asphalt cave-in and pothole near Hospital Emergency entrance",
+      "description": "Road surface eroded by recent rains near the emergency ward gate, impeding ambulance movement. Successfully repaired with hot asphalt mix by municipal road engineers.",
+      "category": "Pothole",
+      "user_selected_category": "Pothole",
+      "status": "Resolved",
+      "priority": "HIGH",
+      "priority_score": 70,
+      "department": "Roads and Transportation Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_pothole.jpg",
+      "resolution_proof_url": "/uploads/proof_pothole.jpg",
+      "resolution_notes": "Road crew dispatched under work order #RW-882. Excavated weak subgrade, filled with stone ballast, and completed bitumen blacktopping.",
+      "location": {
+        "address": "Victoria Hospital Road, City Center",
+        "landmark": "Emergency Gate 1",
+        "latitude": 12.963,
+        "longitude": 77.574,
+        "coordinates": [
+          77.574,
+          12.963
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Pothole",
+        "confidence_percentage": 92,
+        "priority_level": "HIGH",
+        "priority_badge": "\ud83d\udd34 High Priority",
+        "priority_score": 70,
+        "priority_factors": {
+          "severity_score": 30,
+          "safety_risk_score": 16,
+          "location_importance": 10,
+          "crowd_density_score": 14,
+          "nearby_reports_count": 6
+        },
+        "recommended_department": "Roads and Transportation Department",
+        "hazard_triggers": [
+          "hospital",
+          "emergency"
+        ],
+        "ai_explanation": "Significant safety hazard triggers: hospital, emergency \u2022 Elevated community impact: reported by 6 citizens \u2022 High-traffic zone detected (hospital)",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 6,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #2",
+          "timestamp": "2026-10-28T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #3",
+          "timestamp": "2026-10-27T23:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #4",
+          "timestamp": "2026-10-27T20:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #5",
+          "timestamp": "2026-10-27T17:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-23T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "d9ee3627-c196-436c-b86f-81f5febff83c",
+      "complaint_id": "CC-2026-1039",
+      "title": "Illegal debris and commercial waste dumping behind bus terminus",
+      "description": "Commercial building debris and organic waste cleared using compacting trucks. Area disinfected with bleaching powder.",
+      "category": "Garbage Problem",
+      "user_selected_category": "Garbage Problem",
+      "status": "Resolved",
+      "priority": "MEDIUM",
+      "priority_score": 51,
+      "department": "Sanitation Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/sample_garbage.jpg",
+      "resolution_proof_url": "/uploads/proof_garbage.jpg",
+      "resolution_notes": "Night sanitation squad deployed 2 tipper trucks. 4.2 tons of solid waste safely transported to composting facility. Penalty notice issued to adjacent contractor.",
+      "location": {
+        "address": "Majestic Central Bus Stand Backside",
+        "landmark": "Platform 16 Exit",
+        "latitude": 12.977,
+        "longitude": 77.571,
+        "coordinates": [
+          77.571,
+          12.977
+        ]
+      },
+      "citizen": {
+        "id": "user_citizen_1",
+        "name": "Arun Sharma",
+        "email": "citizen@smartcity.gov",
+        "phone": "+91 98765 43210"
+      },
+      "ai_analysis": {
+        "detected_category": "Garbage Problem",
+        "confidence_percentage": 92,
+        "priority_level": "MEDIUM",
+        "priority_badge": "\ud83d\udfe0 Medium Priority",
+        "priority_score": 51,
+        "priority_factors": {
+          "severity_score": 22,
+          "safety_risk_score": 0,
+          "location_importance": 15,
+          "crowd_density_score": 14,
+          "nearby_reports_count": 5
+        },
+        "recommended_department": "Sanitation Department",
+        "hazard_triggers": [],
+        "ai_explanation": "Elevated community impact: reported by 5 citizens \u2022 High-traffic zone detected (bus stand, central)",
+        "image_analysis": {
+          "has_image": false,
+          "visual_confidence_boost": 0,
+          "detected_visual_aspects": [
+            "No visual artifact provided"
+          ],
+          "image_quality": "none"
+        }
+      },
+      "report_count": 5,
+      "duplicate_of": null,
+      "duplicate_reports": [
+        {
+          "reporter_name": "Citizen #1",
+          "timestamp": "2026-10-28T05:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #2",
+          "timestamp": "2026-10-28T02:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #3",
+          "timestamp": "2026-10-27T23:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        },
+        {
+          "reporter_name": "Citizen #4",
+          "timestamp": "2026-10-27T20:46:59.006976",
+          "notes": "Verified this same civic disruption at this spot."
+        }
+      ],
+      "created_at": "2026-10-22T05:46:59.006976",
+      "updated_at": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "5ff5f826-5d0b-4b27-b6c1-57cc3dc6d0d1",
+      "complaint_id": "CC-2026-8305",
+      "title": "drainage leakage",
+      "description": "mosquitoes are infesting due to drainage leak. smell is insufferable.",
+      "category": "Drainage Problem",
+      "user_selected_category": "Drainage Problem",
+      "status": "Assigned",
+      "priority": "LOW",
+      "priority_score": 33,
+      "department": "Municipal Engineering Department",
+      "assigned_officer": null,
+      "image_url": "/uploads/d30bb513d92d4d5d8637d4dc23f8fe24.png",
+      "resolution_proof_url": null,
+      "resolution_notes": null,
+      "location": {
+        "address": "rushitej apartments, near JNTUA Auditorium, JNTUA road, Anantapur, Ananthapuram",
+        "landmark": "Rushitej apartments",
+        "latitude": 14.596825,
+        "longitude": 77.655741,
+        "coordinates": [
+          77.655741,
+          14.596825
+        ]
+      },
+      "citizen": {
+        "id": "f3ad9476-a279-4e17-b341-dca1f339ccf4",
+        "name": "Nanda gowthami",
+        "email": "noneofyourbusinessng02@gmail.com",
+        "phone": "9515910834"
+      },
+      "ai_analysis": {
+        "detected_category": "Drainage Problem",
+        "confidence_percentage": 94,
+        "priority_level": "LOW",
+        "priority_badge": "\ud83d\udfe2 Low Priority",
+        "priority_score": 33,
+        "priority_factors": {
+          "severity_score": 28,
+          "safety_risk_score": 0,
+          "location_importance": 5,
+          "crowd_density_score": 0,
+          "nearby_reports_count": 1
+        },
+        "recommended_department": "Municipal Engineering Department",
+        "hazard_triggers": [],
+        "ai_explanation": "Visual confirmation verified via submitted photograph",
+        "image_analysis": {
+          "has_image": true,
+          "width": 700,
+          "height": 462,
+          "mean_brightness": 131.3,
+          "edge_roughness": 24.0,
+          "visual_confidence_boost": 2,
+          "detected_visual_aspects": [
+            "Heterogeneous color distribution detected (refuse/litter patterns)"
+          ],
+          "image_quality": "verified_hd"
+        }
+      },
+      "report_count": 1,
+      "duplicate_of": null,
+      "duplicate_reports": [],
+      "created_at": "2026-10-28T06:05:52.114415",
+      "updated_at": "2026-10-28T06:05:52.114415"
+    }
+  ],
+  "departments": [],
+  "status_history": [
+    {
+      "_id": "a199b62c-51fe-464b-b8d2-08b49e54ee27",
+      "complaint_id": "CC-2026-1042",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-26T05:46:59.006976"
+    },
+    {
+      "_id": "e63ff20f-f9be-405e-b70b-ec9c591dc376",
+      "complaint_id": "CC-2026-1042",
+      "status": "Assigned",
+      "title": "AI Routed to Roads and Transportation Department",
+      "description": "Assigned \ud83d\udd34 High Priority with 92% confidence based on severity, location, and 9 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-26T05:46:59.006976"
+    },
+    {
+      "_id": "a3ec8e4e-674a-4c21-9f8d-46975c5f87d2",
+      "complaint_id": "CC-2026-1042",
+      "status": "In Progress",
+      "title": "Work Commenced on Site",
+      "description": "Field engineer acknowledged task and equipment dispatched to site.",
+      "updated_by": "Department Dispatcher",
+      "timestamp": "2026-10-27T15:46:59.006976"
+    },
+    {
+      "_id": "e8699528-fb74-4862-bcd1-6ca21b1e542a",
+      "complaint_id": "CC-2026-1043",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-27T05:46:59.006976"
+    },
+    {
+      "_id": "bc5c3563-9052-4076-97f8-4b0ca1627d46",
+      "complaint_id": "CC-2026-1043",
+      "status": "Assigned",
+      "title": "AI Routed to Sanitation Department",
+      "description": "Assigned \ud83d\udfe0 Medium Priority with 92% confidence based on severity, location, and 4 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-27T05:46:59.006976"
+    },
+    {
+      "_id": "46994009-8b53-43fe-b3ed-b7ae59ed23e7",
+      "complaint_id": "CC-2026-1044",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-25T05:46:59.006976"
+    },
+    {
+      "_id": "f12c6336-4d41-45bf-9621-8e67fa52a1c3",
+      "complaint_id": "CC-2026-1044",
+      "status": "Assigned",
+      "title": "AI Routed to Electricity Department",
+      "description": "Assigned \ud83d\udfe2 Low Priority with 92% confidence based on severity, location, and 2 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-25T05:46:59.006976"
+    },
+    {
+      "_id": "f5bd95ef-9ced-4a75-afcd-67d2f58a48a7",
+      "complaint_id": "CC-2026-1045",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-27T05:46:59.006976"
+    },
+    {
+      "_id": "cc0aaec8-4600-441a-a442-ef4c881a8015",
+      "complaint_id": "CC-2026-1045",
+      "status": "Assigned",
+      "title": "AI Routed to Water Supply Department",
+      "description": "Assigned \ud83d\udfe0 Medium Priority with 92% confidence based on severity, location, and 7 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-27T05:46:59.006976"
+    },
+    {
+      "_id": "a08c758a-b629-47d5-88b8-2f6f7cebbd25",
+      "complaint_id": "CC-2026-1045",
+      "status": "In Progress",
+      "title": "Work Commenced on Site",
+      "description": "Field engineer acknowledged task and equipment dispatched to site.",
+      "updated_by": "Department Dispatcher",
+      "timestamp": "2026-10-27T15:46:59.006976"
+    },
+    {
+      "_id": "21ecd06c-5922-454f-bd10-4c7f6d619b52",
+      "complaint_id": "CC-2026-1046",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-26T05:46:59.006976"
+    },
+    {
+      "_id": "ee0d0dbf-2321-43ef-b87f-494ad0633206",
+      "complaint_id": "CC-2026-1046",
+      "status": "Assigned",
+      "title": "AI Routed to Municipal Engineering Department",
+      "description": "Assigned \ud83d\udfe0 Medium Priority with 92% confidence based on severity, location, and 3 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-26T05:46:59.006976"
+    },
+    {
+      "_id": "d301bae1-990d-40fa-98c8-f71c3ff08f7c",
+      "complaint_id": "CC-2026-1047",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-28T05:46:59.006976"
+    },
+    {
+      "_id": "48b2c723-1b15-47a8-8470-cc6c22d77775",
+      "complaint_id": "CC-2026-1047",
+      "status": "Assigned",
+      "title": "AI Routed to Emergency / Public Safety Department",
+      "description": "Assigned \ud83d\udd34 High Priority with 92% confidence based on severity, location, and 12 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-28T05:46:59.006976"
+    },
+    {
+      "_id": "930b886b-76c8-44aa-84f0-104d167951e6",
+      "complaint_id": "CC-2026-1047",
+      "status": "In Progress",
+      "title": "Work Commenced on Site",
+      "description": "Field engineer acknowledged task and equipment dispatched to site.",
+      "updated_by": "Department Dispatcher",
+      "timestamp": "2026-10-27T15:46:59.006976"
+    },
+    {
+      "_id": "481fff05-813f-400b-b128-fcdf349780be",
+      "complaint_id": "CC-2026-1038",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-23T05:46:59.006976"
+    },
+    {
+      "_id": "feec923a-8a95-4785-92ec-544b99a85bc4",
+      "complaint_id": "CC-2026-1038",
+      "status": "Assigned",
+      "title": "AI Routed to Roads and Transportation Department",
+      "description": "Assigned \ud83d\udd34 High Priority with 92% confidence based on severity, location, and 6 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-23T05:46:59.006976"
+    },
+    {
+      "_id": "0754d653-cafd-478e-8454-be2def154021",
+      "complaint_id": "CC-2026-1038",
+      "status": "In Progress",
+      "title": "Work Commenced on Site",
+      "description": "Field engineer acknowledged task and equipment dispatched to site.",
+      "updated_by": "Department Dispatcher",
+      "timestamp": "2026-10-27T15:46:59.006976"
+    },
+    {
+      "_id": "2837085d-2b7c-4fd3-8b06-a2b01aca04c0",
+      "complaint_id": "CC-2026-1038",
+      "status": "Resolved",
+      "title": "Resolution Verified & Closed",
+      "description": "Road crew dispatched under work order #RW-882. Excavated weak subgrade, filled with stone ballast, and completed bitumen blacktopping.",
+      "proof_url": "/uploads/proof_pothole.jpg",
+      "updated_by": "Supervising Officer",
+      "timestamp": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "85b8f334-b890-4e86-b436-0ecf9ca53538",
+      "complaint_id": "CC-2026-1039",
+      "status": "Submitted",
+      "title": "Citizen Complaint Registered",
+      "description": "Registered with photo and GPS location coordinates.",
+      "updated_by": "Arun Sharma",
+      "timestamp": "2026-10-22T05:46:59.006976"
+    },
+    {
+      "_id": "790120fa-ef79-4a7d-8e32-912206dbacb5",
+      "complaint_id": "CC-2026-1039",
+      "status": "Assigned",
+      "title": "AI Routed to Sanitation Department",
+      "description": "Assigned \ud83d\udfe0 Medium Priority with 92% confidence based on severity, location, and 5 reports.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-22T05:46:59.006976"
+    },
+    {
+      "_id": "6646ac36-8565-4842-bfab-33427fe2088b",
+      "complaint_id": "CC-2026-1039",
+      "status": "In Progress",
+      "title": "Work Commenced on Site",
+      "description": "Field engineer acknowledged task and equipment dispatched to site.",
+      "updated_by": "Department Dispatcher",
+      "timestamp": "2026-10-27T15:46:59.006976"
+    },
+    {
+      "_id": "1e2c095c-aa73-421f-ae71-1d91c43f4b41",
+      "complaint_id": "CC-2026-1039",
+      "status": "Resolved",
+      "title": "Resolution Verified & Closed",
+      "description": "Night sanitation squad deployed 2 tipper trucks. 4.2 tons of solid waste safely transported to composting facility. Penalty notice issued to adjacent contractor.",
+      "proof_url": "/uploads/proof_garbage.jpg",
+      "updated_by": "Supervising Officer",
+      "timestamp": "2026-10-28T03:46:59.006976"
+    },
+    {
+      "_id": "7f70876d-723c-4137-b802-c9d4fba5d361",
+      "complaint_id": "CC-2026-8305",
+      "status": "Submitted",
+      "title": "Complaint Submitted",
+      "description": "Complaint recorded by Nanda gowthami. AI categorized as Drainage Problem.",
+      "updated_by": "Nanda gowthami",
+      "timestamp": "2026-10-28T06:05:52.114415"
+    },
+    {
+      "_id": "8f5f92ad-a759-46b8-8f03-8bce475b4e0e",
+      "complaint_id": "CC-2026-8305",
+      "status": "Assigned",
+      "title": "Auto-Routed to Municipal Engineering Department",
+      "description": "AI assigned \ud83d\udfe2 Low Priority with 94% confidence. Recommended action dispatched.",
+      "updated_by": "CivicConnect AI Engine",
+      "timestamp": "2026-10-28T06:05:52.114415"
+    }
+  ],
+  "notifications": [
+    {
+      "_id": "480942d9-52f9-493b-83a2-e42567cae23c",
+      "user_id": "f3ad9476-a279-4e17-b341-dca1f339ccf4",
+      "complaint_id": "CC-2026-8305",
+      "title": "Complaint CC-2026-8305 Registered",
+      "message": "Your complaint has been verified by AI and auto-routed to Municipal Engineering Department (\ud83d\udfe2 Low Priority).",
+      "type": "registered",
+      "is_read": false,
+      "created_at": "2026-10-28T06:05:52.182505"
+    }
+  ]
+}
