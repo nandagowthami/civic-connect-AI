@@ -1,4 +1,6 @@
 {
+    "framework": "vite",
+    "public": true,
     "rewrites": [
         {
             "source": "/api/:path*",
