@@ -22,14 +22,7 @@ try:
     is_mongo_active = True
     print(f"Connected to MongoDB at {MONGO_URI} (Database: {DB_NAME})")
     
-    # Create indexes
-    db.users.create_index([("email", ASCENDING)], unique=True)
-    db.complaints.create_index([("complaint_id", ASCENDING)], unique=True)
-    db.complaints.create_index([("status", ASCENDING)])
-    db.complaints.create_index([("priority", ASCENDING)])
-    db.complaints.create_index([("department", ASCENDING)])
-    db.complaints.create_index([("created_at", DESCENDING)])
-    db.notifications.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
+
 except Exception as e:
     print(f"MongoDB ping error: {e}. Active fallback enabled.")
     is_mongo_active = False
