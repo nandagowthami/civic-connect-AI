@@ -7,7 +7,7 @@ from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 
 logger = logging.getLogger("civicconnect.db")
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+MONGO_URI = "mongodb+srv://nandagowthaminallagarla_db_user:Q9EDFj5c4c927aQu>@cluster0.hutgjva.mongodb.net/"
 DB_NAME = os.getenv("DB_NAME", "civicconnect_ai")
 
 client = None
