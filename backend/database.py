@@ -7,15 +7,15 @@ from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 
 logger = logging.getLogger("civicconnect.db")
 
-MONGO_URI = "mongodb+srv://nandagowthaminallagarla_db_user:Q9EDFj5c4c927aQu>@cluster0.hutgjva.mongodb.net/"
-DB_NAME = os.getenv("DB_NAME", "civicconnect_ai")
+MONGO_URI = "mongodb+srv://nandagowthaminallagarla_db_user:Q9EDFj5c4c927aQu@cluster0.hutgjva.mongodb.net/"
+DB_NAME =  "civicconnect_ai"
 
 client = None
 db = None
 is_mongo_active = False
 
 try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=2500)
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=2500, tlsAllowInvalidCertificates=True)
     # Ping database to verify connection
     client.admin.command('ping')
     db = client[DB_NAME]
