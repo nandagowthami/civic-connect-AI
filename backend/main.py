@@ -3,8 +3,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from routers import auth, issues, departments, analytics, notifications
-from seed_data import seed_database
+from backend.routers import auth, issues, departments, analytics, notifications
+from backend.seed_data import seed_database
 
 app = FastAPI(
     title="CivicConnect AI API",
