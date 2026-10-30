@@ -1,4 +1,4 @@
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Literal
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -36,28 +36,28 @@ class TokenResponse(BaseModel):
 class LocationModel(BaseModel):
     address: str
     landmark: Optional[str] = ""
-    latitude: float
-    longitude: float
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
 
 class ComplaintCreate(BaseModel):
-    title: str
-    description: str
-    category: Optional[str] = "Other"
-    address: str
-    landmark: Optional[str] = ""
-    latitude: float
-    longitude: float
-    image_url: Optional[str] = None
+    title: str = Field(min_length=5, max_length=140)
+    description: str = Field(min_length=10, max_length=5000)
+    category: Optional[str] = Field(default="Other", max_length=60)
+    address: str = Field(min_length=3, max_length=300)
+    landmark: Optional[str] = Field(default="", max_length=200)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    image_url: Optional[str] = Field(default=None, max_length=500)
 
 class StatusUpdate(BaseModel):
-    status: str
-    notes: Optional[str] = ""
-    resolution_proof_url: Optional[str] = None
+    status: Literal["Submitted", "Under AI Review", "Assigned", "In Progress", "Resolved", "Rejected"]
+    notes: Optional[str] = Field(default="", max_length=1000)
+    resolution_proof_url: Optional[str] = Field(default=None, max_length=500)
 
 class DepartmentAssign(BaseModel):
-    department: str
-    assigned_officer_id: Optional[str] = None
-    notes: Optional[str] = ""
+    department: str = Field(min_length=3, max_length=120)
+    assigned_officer_id: Optional[str] = Field(default=None, max_length=120)
+    notes: Optional[str] = Field(default="", max_length=1000)
 
 class SupportComplaint(BaseModel):
-    notes: Optional[str] = ""
+    notes: Optional[str] = Field(default="", max_length=500)
