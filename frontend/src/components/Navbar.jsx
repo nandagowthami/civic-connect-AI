@@ -24,6 +24,30 @@ export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [demoAccessKey, setDemoAccessKey] = useState('');
+  const [roleSwitchError, setRoleSwitchError] = useState('');
+  const [switchingRole, setSwitchingRole] = useState(false);
+  const demoKeyRequired = import.meta.env.PROD && import.meta.env.VITE_DEMO_MODE === 'true';
+
+  const handleRoleSwitch = async (roleKey) => {
+    if (demoKeyRequired && !demoAccessKey.trim()) {
+      setRoleSwitchError('Enter the class demo access key to switch personas.');
+      return;
+    }
+    setSwitchingRole(true);
+    setRoleSwitchError('');
+    try {
+      await switchRole(roleKey, demoAccessKey);
+      setTab(roleKey === 'admin' ? 'admin_dashboard' : roleKey.includes('officer') ? 'department_dashboard' : 'citizen_dashboard');
+      setDemoAccessKey('');
+      setShowRoleMenu(false);
+    } catch (err) {
+      setRoleSwitchError(err.response?.data?.detail || err.message || 'Could not switch persona. Please try again.');
+      setDemoAccessKey('');
+    } finally {
+      setSwitchingRole(false);
+    }
+  };
 
   const getDashboardLabel = () => {
     if (!user) return 'Public Dashboard';
@@ -64,7 +88,13 @@ export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
           {/* Quick Role Switcher */}
           <div className="relative">
             <button
-              onClick={() => DEMO_MODE && setShowRoleMenu(!showRoleMenu)}
+              onClick={() => DEMO_MODE && setShowRoleMenu((open) => {
+                if (open) {
+                  setDemoAccessKey('');
+                  setRoleSwitchError('');
+                }
+                return !open;
+              })}
               className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-smart-300 px-2.5 py-0.5 rounded border border-slate-700 transition"
             >
               <Sparkles className="w-3 h-3 text-amber-400" />
@@ -75,46 +105,68 @@ export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
             {DEMO_MODE && showRoleMenu && (
               <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-slate-200 text-slate-800 p-2 z-50 animate-in fade-in zoom-in-95">
                 <div className="px-2 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Switch Active Persona
+                  {switchingRole ? 'Switching persona…' : 'Switch Active Persona'}
                 </div>
+                {demoKeyRequired && (
+                  <div className="px-2 pt-1 pb-2">
+                    <label htmlFor="navbar-demo-access-key" className="block text-[11px] font-medium text-slate-600 mb-1">Class demo access key</label>
+                    <input
+                      id="navbar-demo-access-key"
+                      type="password"
+                      value={demoAccessKey}
+                      onChange={(event) => { setDemoAccessKey(event.target.value); setRoleSwitchError(''); }}
+                      autoComplete="off"
+                      disabled={switchingRole}
+                      className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-smart-500"
+                      placeholder="Enter access key"
+                    />
+                  </div>
+                )}
+                {roleSwitchError && <p role="alert" className="mx-2 mb-2 rounded bg-red-50 px-2 py-1.5 text-[11px] text-red-700">{roleSwitchError}</p>}
                 <div className="space-y-1 mt-1">
                   <button
-                    onClick={() => { switchRole('citizen'); setShowRoleMenu(false); }}
+                    disabled={switchingRole}
+                    onClick={() => handleRoleSwitch('citizen')}
                     className="w-full text-left px-2.5 py-1.5 rounded text-xs hover:bg-smart-50 hover:text-smart-700 flex items-center justify-between"
                   >
                     <span>👤 Citizen (Arun Sharma)</span>
                     <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">Citizen</span>
                   </button>
                   <button
-                    onClick={() => { switchRole('admin'); setShowRoleMenu(false); }}
+                    disabled={switchingRole}
+                    onClick={() => handleRoleSwitch('admin')}
                     className="w-full text-left px-2.5 py-1.5 rounded text-xs hover:bg-smart-50 hover:text-smart-700 flex items-center justify-between"
                   >
                     <span>🏛️ Municipal Admin</span>
                     <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">Admin</span>
                   </button>
                   <button
-                    onClick={() => { switchRole('roads_officer'); setShowRoleMenu(false); }}
+                    disabled={switchingRole}
+                    onClick={() => handleRoleSwitch('roads_officer')}
                     className="w-full text-left px-2.5 py-1.5 rounded text-xs hover:bg-smart-50 hover:text-smart-700 flex items-center justify-between"
                   >
                     <span>🚧 Roads Dept Officer</span>
                     <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Roads</span>
                   </button>
                   <button
-                    onClick={() => { switchRole('sanitation_officer'); setShowRoleMenu(false); }}
+                    disabled={switchingRole}
+                    onClick={() => handleRoleSwitch('sanitation_officer')}
                     className="w-full text-left px-2.5 py-1.5 rounded text-xs hover:bg-smart-50 hover:text-smart-700 flex items-center justify-between"
                   >
                     <span>🧹 Sanitation Officer</span>
                     <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Sanitation</span>
                   </button>
                   <button
-                    onClick={() => { switchRole('electricity_officer'); setShowRoleMenu(false); }}
+                    disabled={switchingRole}
+                    onClick={() => handleRoleSwitch('electricity_officer')}
                     className="w-full text-left px-2.5 py-1.5 rounded text-xs hover:bg-smart-50 hover:text-smart-700 flex items-center justify-between"
                   >
                     <span>⚡ Electricity Officer</span>
                     <span className="text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">Electricity</span>
                   </button>
                   <button
-                    onClick={() => { switchRole('water_officer'); setShowRoleMenu(false); }}
+                    disabled={switchingRole}
+                    onClick={() => handleRoleSwitch('water_officer')}
                     className="w-full text-left px-2.5 py-1.5 rounded text-xs hover:bg-smart-50 hover:text-smart-700 flex items-center justify-between"
                   >
                     <span>💧 Water Supply Officer</span>

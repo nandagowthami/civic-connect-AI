@@ -21,7 +21,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { assetUrl } from '../lib/runtime';
 
 export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const isGuest = !user;
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,25 +31,47 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
   const [searchFilter, setSearchFilter] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const fetchComplaints = async () => {
       setLoading(true);
       setLoadError('');
-      try {
-        const userId = user?.id || user?._id;
-        const endpoint = user?.role === 'citizen' && userId
-          ? `/api/issues?citizen_id=${encodeURIComponent(userId)}`
-          : '/api/issues';
-        const res = await axios.get(endpoint);
-        setComplaints(res.data);
-      } catch {
-        setComplaints([]);
-        setLoadError('Unable to load reports. Check your connection and try again.');
-      } finally {
-        setLoading(false);
+      const userId = user?.id || user?._id;
+      const endpoint = user?.role === 'citizen' && userId
+        ? `/api/issues?citizen_id=${encodeURIComponent(userId)}`
+        : '/api/issues';
+      const requestConfig = {
+        timeout: 20000,
+        signal: controller.signal,
+        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+      };
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const res = await axios.get(endpoint, requestConfig);
+          if (!cancelled) setComplaints(res.data);
+          break;
+        } catch (error) {
+          if (cancelled) return;
+          const isRetryable = !error.response || error.response.status >= 500 || error.response.status === 429;
+          if (attempt === 0 && isRetryable) {
+            await wait(700);
+            continue;
+          }
+          setComplaints([]);
+          setLoadError('Unable to load reports. Check your connection and try again.');
+          break;
+        }
       }
+      if (!cancelled) setLoading(false);
     };
+    const controller = new AbortController();
     fetchComplaints();
-  }, [user, refreshKey]);
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [user, token, refreshKey]);
 
   // Compute stats
   const total = complaints.length;
