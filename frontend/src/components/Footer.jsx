@@ -1,7 +1,24 @@
 import React from 'react';
 import { Building2, Shield, HeartHandshake, PhoneCall, Mail, ExternalLink } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const Footer = ({ setTab }) => {
+  const { user } = useAuth();
+  const dashboardLabel = !user
+    ? 'Public Dashboard'
+    : user.role === 'admin'
+      ? 'Admin Portal'
+      : user.role === 'officer'
+        ? `${user.department?.split(' ')[0] || 'Officer'} Portal`
+        : 'Citizen Dashboard';
+  const dashboardTab = !user
+    ? 'citizen_dashboard'
+    : user.role === 'admin'
+      ? 'admin_dashboard'
+      : user.role === 'officer'
+        ? 'department_dashboard'
+        : 'citizen_dashboard';
+
   return (
     <footer className="bg-slate-900 text-slate-400 text-sm border-t border-slate-800 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -43,8 +60,8 @@ export const Footer = ({ setTab }) => {
                 </button>
               </li>
               <li>
-                <button onClick={() => setTab('citizen_dashboard')} className="hover:text-white transition">
-                  Citizen Dashboard
+                <button onClick={() => setTab(dashboardTab)} className="hover:text-white transition">
+                  {dashboardLabel}
                 </button>
               </li>
             </ul>

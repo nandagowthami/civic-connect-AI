@@ -25,12 +25,15 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
   const isGuest = !user;
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchFilter, setSearchFilter] = useState('');
 
   useEffect(() => {
     const fetchComplaints = async () => {
       setLoading(true);
+      setLoadError('');
       try {
         const userId = user?.id || user?._id;
         const endpoint = user?.role === 'citizen' && userId
@@ -38,14 +41,15 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
           : '/api/issues';
         const res = await axios.get(endpoint);
         setComplaints(res.data);
-      } catch (err) {
-        console.error('Error fetching complaints:', err);
+      } catch {
+        setComplaints([]);
+        setLoadError('Unable to load reports. Check your connection and try again.');
       } finally {
         setLoading(false);
       }
     };
     fetchComplaints();
-  }, [user]);
+  }, [user, refreshKey]);
 
   // Compute stats
   const total = complaints.length;
@@ -103,7 +107,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
               {isGuest ? 'Public Reports' : 'My Complaints'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 block">
-              {total}
+              {loading || loadError ? '—' : total}
             </span>
             <span className="text-[11px] text-slate-400 mt-0.5 block">Reported to City</span>
           </div>
@@ -118,7 +122,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
               {isGuest ? 'Awaiting Dispatch' : 'Pending Complaints'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 block">
-              {pending}
+              {loading || loadError ? '—' : pending}
             </span>
             <span className="text-[11px] text-slate-400 mt-0.5 block">Awaiting Dispatch</span>
           </div>
@@ -133,7 +137,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
               {isGuest ? 'Community In Progress' : 'Issues In Progress'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-smart-600 mt-1 block">
-              {inProgress}
+              {loading || loadError ? '—' : inProgress}
             </span>
             <span className="text-[11px] text-slate-400 mt-0.5 block">Field Squad Working</span>
           </div>
@@ -148,7 +152,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
               {isGuest ? 'Community Resolved' : 'Resolved Complaints'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 block">
-              {resolved}
+              {loading || loadError ? '—' : resolved}
             </span>
             <span className="text-[11px] text-slate-400 mt-0.5 block">With Photographic Proof</span>
           </div>
@@ -194,11 +198,25 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-900">
-            {isGuest ? 'Community Civic Reports' : 'My Civic Complaints & Reports'} ({filtered.length})
+            {isGuest ? 'Community Civic Reports' : 'My Civic Complaints & Reports'} ({loading ? 'Loading…' : loadError ? 'Unavailable' : filtered.length})
           </h2>
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div role="status" className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
+            Loading reports…
+          </div>
+        ) : loadError ? (
+          <div role="alert" className="bg-white rounded-2xl border border-amber-200 p-8 text-center text-slate-600">
+            <p className="font-semibold text-sm">{loadError}</p>
+            <button
+              onClick={() => setRefreshKey((key) => key + 1)}
+              className="mt-3 text-xs font-semibold text-smart-700 hover:text-smart-800"
+            >
+              Retry loading reports
+            </button>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
             <Building2 className="w-12 h-12 mx-auto mb-3 text-slate-300" />
             <p className="font-semibold text-sm">
