@@ -2,6 +2,14 @@
 
 A modern, responsive Smart City civic issue reporting portal and automated priority routing system built with **FastAPI**, **MongoDB**, **React**, **Tailwind CSS**, **Leaflet (OpenStreetMap)**, and **Recharts**.
 
+### Live demo and project guides
+
+- **[Open the CivicConnect AI demo](https://civic-connect-ai-sigma.vercel.app/)**
+- **[Backend API health](https://civic-connect-ai-rzob.onrender.com/api/health)** · **[Interactive API docs](https://civic-connect-ai-rzob.onrender.com/docs)**
+- [Project overview (PDF)](docs/CivicConnect_AI_Project_Overview.pdf) · [Demo user manual (PDF)](docs/CivicConnect_AI_Demo_User_Manual.pdf)
+
+The frontend is hosted on Vercel. Its `/api` and `/uploads` routes proxy to the FastAPI service on Render; MongoDB Atlas stores persistent application data. The API may take a short time to wake after inactivity.
+
 ---
 
 ## 🌟 Key Features
