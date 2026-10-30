@@ -37,7 +37,9 @@ function AppContent() {
       case 'admin_dashboard':
         return <AdminDashboard setTab={setTab} onSelectComplaint={handleSelectComplaint} />;
       case 'department_dashboard':
-        return <DepartmentDashboard setTab={setTab} onSelectComplaint={handleSelectComplaint} />;
+        // Force the department portal to reload its selected queue when the
+        // active demo officer changes persona without leaving this tab.
+        return <DepartmentDashboard key={`${user?.role || 'guest'}:${user?.department || ''}`} setTab={setTab} onSelectComplaint={handleSelectComplaint} />;
       case 'about':
         return <AboutContactPage />;
       case 'login':
