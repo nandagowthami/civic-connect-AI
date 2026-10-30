@@ -40,6 +40,7 @@ const createPriorityIcon = (priority) => {
 export const IssueMapPage = ({ setTab, onSelectComplaint }) => {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -47,17 +48,33 @@ export const IssueMapPage = ({ setTab, onSelectComplaint }) => {
   useEffect(() => {
     const loadMapIssues = async () => {
       setLoading(true);
+      setLoadError('');
       try {
         const res = await axios.get('/api/issues?limit=150');
         setComplaints(res.data);
       } catch (err) {
         console.error('Failed to load map data:', err);
+        setLoadError('Could not load issue locations. The API may be waking up; try again in a moment.');
       } finally {
         setLoading(false);
       }
     };
     loadMapIssues();
   }, []);
+
+  const reloadMapIssues = async () => {
+    setLoading(true);
+    setLoadError('');
+    try {
+      const res = await axios.get('/api/issues?limit=150');
+      setComplaints(res.data);
+    } catch (err) {
+      console.error('Failed to load map data:', err);
+      setLoadError('Could not load issue locations. The API may be waking up; try again in a moment.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredIssues = complaints.filter(issue => {
     if (priorityFilter !== 'All' && issue.priority !== priorityFilter) return false;
@@ -143,9 +160,18 @@ export const IssueMapPage = ({ setTab, onSelectComplaint }) => {
         </div>
 
         <span className="text-xs text-slate-500 font-medium">
-          Showing <strong>{filteredIssues.length}</strong> geocoded issues on map
+          {loading ? 'Loading issue locations…' : <>Showing <strong>{filteredIssues.length}</strong> geocoded issues on map</>}
         </span>
       </div>
+
+      {loadError && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span>{loadError}</span>
+          <button type="button" onClick={reloadMapIssues} disabled={loading} className="rounded-lg bg-amber-800 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60">
+            {loading ? 'Retrying…' : 'Retry'}
+          </button>
+        </div>
+      )}
 
       {/* Fullscreen Map Container */}
       <div className="h-[600px] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-md relative">

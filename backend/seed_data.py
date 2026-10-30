@@ -2,12 +2,15 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
-from .database import users_col, complaints_col, departments_col, status_history_col, notifications_col
-from .routers.auth import hash_password
-from .routers.departments import DEFAULT_DEPARTMENTS
-from .ai_engine import analyze_issue
+from database import users_col, complaints_col, departments_col, status_history_col, notifications_col
+from routers.auth import hash_password
+from routers.departments import DEFAULT_DEPARTMENTS
+from ai_engine import analyze_issue
+from database import db, is_mongo_active
 
-UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "uploads")))
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+DEFAULT_UPLOAD_DIR = "/tmp/civicconnect/uploads" if APP_ENV == "production" else os.path.join(os.path.dirname(__file__), "..", "uploads")
+UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", DEFAULT_UPLOAD_DIR))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "proofs"), exist_ok=True)
 
@@ -47,9 +50,27 @@ def update_demo_report_locations():
 def generate_sample_civic_image(filename: str, title: str, subtitle: str, bg_color: tuple, accent_color: tuple):
     """Generates an aesthetic smart city photo placeholder with civic iconography."""
     filepath = os.path.join(UPLOAD_DIR, filename)
+    production_image_url = f"/api/issues/image/{filename}"
+    if APP_ENV == "production" and is_mongo_active and db is not None:
+        from gridfs import GridFSBucket
+        bucket = GridFSBucket(db, bucket_name="report_images")
+        if not next(iter(bucket.find({"filename": filename}).limit(1)), None):
+            if not os.path.exists(filepath):
+                os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                _generate_sample_image(filepath, title, subtitle, bg_color, accent_color)
+            with open(filepath, "rb") as image_file, bucket.open_upload_stream(
+                filename, metadata={"content_type": "image/jpeg", "subdir": "sample"}
+            ) as stream:
+                stream.write(image_file.read())
+        return production_image_url
     if os.path.exists(filepath):
         return f"/uploads/{filename}"
 
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    _generate_sample_image(filepath, title, subtitle, bg_color, accent_color)
+    return f"/uploads/{filename}"
+
+def _generate_sample_image(filepath: str, title: str, subtitle: str, bg_color: tuple, accent_color: tuple):
     img = Image.new("RGB", (800, 500), color=bg_color)
     draw = ImageDraw.Draw(img)
 
@@ -76,12 +97,11 @@ def generate_sample_civic_image(filename: str, title: str, subtitle: str, bg_col
     draw.text((70, 410), "Geo-Tagged & AI Verified • CivicConnect AI System", fill=(160, 180, 200))
 
     img.save(filepath, format="JPEG", quality=85)
-    return f"/uploads/{filename}"
 
-def seed_database():
+def seed_database(include_users=True, demo_citizen_id="user_citizen_1"):
     """Initializes seed users, sample civic complaints, and audit records."""
     existing_users = users_col.count_documents()
-    if existing_users > 0:
+    if include_users and existing_users > 0:
         print("Database already contains records. Skipping full reseed.")
         return
 
@@ -151,8 +171,9 @@ def seed_database():
         }
     ]
 
-    for u in sample_users:
-        users_col.insert_one(u)
+    if include_users:
+        for u in sample_users:
+            users_col.insert_one(u)
 
     # 2. Seed Sample Images
     img_pothole = generate_sample_civic_image("sample_pothole.jpg", "Severe Road Crater & Pothole", "Itukulapalli Road near Anantha Lakshmi College", (40, 50, 60), (220, 38, 38))
@@ -182,7 +203,7 @@ def seed_database():
             "img": img_pothole,
             "report_count": 9,  # High crowd duplicate cluster!
             "created_days_ago": 2,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1043",
@@ -197,7 +218,7 @@ def seed_database():
             "img": img_garbage,
             "report_count": 4,
             "created_days_ago": 1,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1044",
@@ -212,7 +233,7 @@ def seed_database():
             "img": img_light,
             "report_count": 2,
             "created_days_ago": 3,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1045",
@@ -227,7 +248,7 @@ def seed_database():
             "img": img_water,
             "report_count": 7,
             "created_days_ago": 1,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1046",
@@ -242,7 +263,7 @@ def seed_database():
             "img": img_drainage,
             "report_count": 3,
             "created_days_ago": 2,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1047",
@@ -257,7 +278,7 @@ def seed_database():
             "img": img_hazard,
             "report_count": 12,  # Extreme crowd report
             "created_days_ago": 0,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1038",
@@ -274,7 +295,7 @@ def seed_database():
             "resolution_notes": "Road crew dispatched under work order #RW-882. Excavated weak subgrade, filled with stone ballast, and completed bitumen blacktopping.",
             "report_count": 6,
             "created_days_ago": 5,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1039",
@@ -291,7 +312,7 @@ def seed_database():
             "resolution_notes": "Night sanitation squad deployed 2 tipper trucks. 4.2 tons of solid waste safely transported to composting facility. Penalty notice issued to adjacent contractor.",
             "report_count": 5,
             "created_days_ago": 6,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         }
     ]
 
@@ -333,9 +354,9 @@ def seed_database():
             },
             "citizen": {
                 "id": item["user_id"],
-                "name": "Arun Sharma",
-                "email": "citizen@smartcity.gov",
-                "phone": "+91 98765 43210"
+                "name": "Anonymous Citizen",
+                "email": "",
+                "phone": ""
             },
             "ai_analysis": ai_res,
             "report_count": item["report_count"],
@@ -359,7 +380,7 @@ def seed_database():
             "status": "Submitted",
             "title": "Citizen Complaint Registered",
             "description": f"Registered with photo and GPS location coordinates.",
-            "updated_by": "Arun Sharma",
+            "updated_by": "Anonymous Citizen",
             "timestamp": c_time
         })
 
@@ -396,4 +417,5 @@ def seed_database():
                 "timestamp": (now - timedelta(hours=2)).isoformat()
             })
 
-    print(f"Seeded {len(sample_users)} users and {len(raw_complaints)} realistic complaints successfully!")
+    users_message = f"{len(sample_users)} users and " if include_users else ""
+    print(f"Seeded {users_message}{len(raw_complaints)} realistic complaints successfully!")

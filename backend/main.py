@@ -7,10 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from backend.routers import auth, issues, departments, analytics, notifications
-from backend.seed_data import seed_database, update_demo_report_locations
-from backend.database import users_col
-from backend.routers.auth import hash_password
+from routers import auth, issues, departments, analytics, notifications
+from seed_data import seed_database, update_demo_report_locations
+from database import users_col, complaints_col
+from routers.auth import hash_password
 
 APP_ENV = os.getenv("APP_ENV", "development").lower()
 FRONTEND_ORIGINS = [origin.strip() for origin in os.getenv(
@@ -35,7 +35,8 @@ app.add_middleware(
 )
 
 # Mount static uploads directory for photos
-UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "uploads")))
+DEFAULT_UPLOAD_DIR = "/tmp/civicconnect/uploads" if APP_ENV == "production" else os.path.join(os.path.dirname(__file__), "..", "uploads")
+UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", DEFAULT_UPLOAD_DIR))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "proofs"), exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
@@ -53,7 +54,7 @@ FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 def on_startup():
     if APP_ENV == "production":
         if not os.getenv("FRONTEND_ORIGINS", "").strip():
-            raise RuntimeError("Set FRONTEND_ORIGINS to the Vercel site origin(s).")
+            raise RuntimeError("Set FRONTEND_ORIGINS to the exact Vercel site origin(s).")
         if not os.getenv("JWT_SECRET") or len(os.getenv("JWT_SECRET", "")) < 32:
             raise RuntimeError("Set JWT_SECRET to a random value of at least 32 characters.")
         admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
@@ -91,6 +92,12 @@ def on_startup():
                     users_col.update_one({"_id": existing.get("_id")}, {"$set": account})
                 else:
                     users_col.insert_one({"_id": f"demo_{role}_{email.split('@')[0]}", "id": f"demo_{role}_{email.split('@')[0]}", **account})
+            # Populate a fresh demo database with anonymous sample reports so the
+            # public map, tracking page, and role dashboards have data to exercise.
+            # Never seed over an existing report collection.
+            if complaints_col.count_documents() == 0:
+                seed_database(include_users=False, demo_citizen_id="demo_citizen_citizen")
+                update_demo_report_locations()
         else:
             # If an old local/demo database is reused, strip the published staff roles and passwords.
             for email, _, role, _ in demo_accounts:

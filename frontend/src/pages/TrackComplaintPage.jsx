@@ -112,7 +112,7 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
           Track Civic Complaint Status
         </h1>
         <p className="text-sm text-slate-600 mt-1">
-          Search by Complaint ID (e.g. <span className="font-mono font-semibold text-smart-600">CC-2026-1042</span>), registered phone number, or email address.
+          Search using your Complaint ID (e.g. <span className="font-mono font-semibold text-smart-600">CC-2026-1042</span>). No name, phone number, or email is needed.
         </p>
       </div>
 

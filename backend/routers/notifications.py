@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
-from ..database import notifications_col
-from ..routers.auth import get_current_user, require_current_user
+from database import notifications_col
+from routers.auth import get_current_user, require_current_user
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 

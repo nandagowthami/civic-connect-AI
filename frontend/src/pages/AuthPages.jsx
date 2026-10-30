@@ -52,11 +52,13 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
 
   const handleDemoLogin = async (key) => {
     setLoading(true);
+    setError('');
     try {
-      await switchRole(key);
+      const demoUser = await switchRole(key);
+      if (!demoUser) return;
       setTab(key === 'admin' ? 'admin_dashboard' : key.includes('officer') ? 'department_dashboard' : 'citizen_dashboard');
     } catch (err) {
-      setError('Demo login failed.');
+      setError(err.response?.data?.detail || err.message || 'Demo sign-in failed. Check the demo access key and server configuration.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +82,7 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
       {DEMO_MODE && <div className="bg-gradient-to-tr from-smart-50 to-indigo-50 border border-smart-200 rounded-2xl p-4 shadow-sm space-y-2.5">
         <div className="flex items-center gap-1.5 text-xs font-bold text-smart-800">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>Quick 1-Click Demo Personas (No Password Needed)</span>
+          <span>Quick Demo Personas (class access key required)</span>
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <button
