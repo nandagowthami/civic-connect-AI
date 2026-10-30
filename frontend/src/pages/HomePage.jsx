@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { PriorityBadge } from '../components/PriorityBadge';
 import { StatusBadge } from '../components/StatusBadge';
+import { assetUrl } from '../lib/runtime';
 
 export const HomePage = ({ setTab, onSelectComplaint }) => {
   const [recentComplaints, setRecentComplaints] = useState([]);
@@ -250,7 +251,7 @@ export const HomePage = ({ setTab, onSelectComplaint }) => {
               <div className="h-44 bg-slate-100 relative overflow-hidden">
                 {issue.image_url ? (
                   <img
-                    src={issue.image_url}
+                    src={assetUrl(issue.image_url)}
                     alt={issue.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />

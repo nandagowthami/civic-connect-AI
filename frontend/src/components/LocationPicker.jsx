@@ -46,7 +46,7 @@ export const LocationPicker = ({
   address, 
   onLocationSelect 
 }) => {
-  const [position, setPosition] = useState([latitude || 12.9716, longitude || 77.5946]);
+  const [position, setPosition] = useState([latitude || 14.5970078, longitude || 77.6557271]);
   const [detectingGps, setDetectingGps] = useState(false);
   const [gpsMessage, setGpsMessage] = useState('');
 
@@ -84,8 +84,8 @@ export const LocationPicker = ({
       (err) => {
         console.warn('GPS detection failed:', err.message);
         // Fallback to sample smart city coordinates
-        const sampleLat = 12.9716 + (Math.random() - 0.5) * 0.02;
-        const sampleLng = 77.5946 + (Math.random() - 0.5) * 0.02;
+        const sampleLat = 14.5970078 + (Math.random() - 0.5) * 0.02;
+        const sampleLng = 77.6557271 + (Math.random() - 0.5) * 0.02;
         setPosition([sampleLat, sampleLng]);
         handleLocationChange(sampleLat, sampleLng);
         setDetectingGps(false);

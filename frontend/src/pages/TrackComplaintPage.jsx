@@ -14,15 +14,16 @@ import {
   ThumbsUp, 
   Image as ImageIcon,
   Loader2,
-  Phone,
-  Mail,
   Calendar
 } from 'lucide-react';
 import { PriorityBadge } from '../components/PriorityBadge';
 import { StatusBadge } from '../components/StatusBadge';
+import { assetUrl } from '../lib/runtime';
+import { useAuth } from '../context/AuthContext';
 
 export const TrackComplaintPage = ({ initialComplaintId }) => {
-  const [query, setQuery] = useState(initialComplaintId || 'CC-2026-1042');
+  const { user } = useAuth();
+  const [query, setQuery] = useState(initialComplaintId || '');
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -51,8 +52,6 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
     if (initialComplaintId) {
       setQuery(initialComplaintId);
       fetchComplaint(initialComplaintId);
-    } else {
-      fetchComplaint('CC-2026-1042');
     }
   }, [initialComplaintId]);
 
@@ -62,7 +61,7 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
   };
 
   const handleSupportIssue = async () => {
-    if (!complaint || supported) return;
+    if (!complaint || supported || user?.role !== 'citizen') return;
     setSupporting(true);
     try {
       const res = await axios.post(`/api/issues/${complaint.complaint_id}/support`, {
@@ -124,7 +123,7 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter Complaint ID (CC-2026-XXXX), Phone (+91...), or Email..."
+          placeholder="Enter complaint ID (CC-2026-XXXX)"
           className="w-full text-sm px-2 py-2 focus:outline-none text-slate-900 placeholder-slate-400"
           required
         />
@@ -215,7 +214,7 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
 
                   <button
                     onClick={handleSupportIssue}
-                    disabled={supporting || supported}
+                    disabled={supporting || supported || user?.role !== 'citizen'}
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${
                       supported 
                         ? 'bg-emerald-600 text-white' 
@@ -223,7 +222,7 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
                     }`}
                   >
                     <ThumbsUp className="w-3.5 h-3.5" />
-                    <span>{supported ? '✓ Supported' : 'I also face this'}</span>
+                    <span>{supported ? '✓ Supported' : user?.role === 'citizen' ? 'I also face this' : 'Sign in as Citizen to support'}</span>
                   </button>
                 </div>
               </div>
@@ -236,7 +235,7 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
                   </h4>
                   {complaint.image_url ? (
                     <img 
-                      src={complaint.image_url} 
+                      src={assetUrl(complaint.image_url)}
                       alt="Civic Issue" 
                       className="w-full h-44 object-cover rounded-xl border border-slate-200 shadow-sm"
                     />
@@ -259,7 +258,7 @@ export const TrackComplaintPage = ({ initialComplaintId }) => {
                       </span>
                     </div>
                     <img 
-                      src={complaint.resolution_proof_url} 
+                      src={assetUrl(complaint.resolution_proof_url)}
                       alt="Resolution Proof" 
                       className="w-full h-44 object-cover rounded-xl border-2 border-emerald-500 shadow-sm"
                     />

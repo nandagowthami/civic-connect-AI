@@ -77,7 +77,7 @@
       "_id": "ac31e727-b6f0-449c-bec4-199018d02799",
       "complaint_id": "CC-2026-1042",
       "title": "Massive deep pothole causing vehicle damage and traffic bottleneck",
-      "description": "There is a massive 2-foot deep pothole on MG Road near the Metro Station entrance. Multiple two-wheelers have skidded and cars are suffering axle damage. It poses an immediate accident danger during peak hours.",
+      "description": "There is a massive 2-foot deep pothole on Itukulapalli Road near Anantha Lakshmi Engineering College. Multiple two-wheelers have skidded and cars are suffering axle damage. It poses an immediate accident danger during peak hours.",
       "category": "Pothole",
       "user_selected_category": "Pothole",
       "status": "In Progress",
@@ -89,13 +89,13 @@
       "resolution_proof_url": null,
       "resolution_notes": null,
       "location": {
-        "address": "MG Road, near Metro Pillar 142, Central Ward",
-        "landmark": "Opposite Metro Station Gate 2",
-        "latitude": 12.975,
-        "longitude": 77.605,
+        "address": "Itukulapalli Road, near Anantha Lakshmi Engineering College, Anantapur",
+        "landmark": "Near the college entrance",
+        "latitude": 14.598,
+        "longitude": 77.6565,
         "coordinates": [
-          77.605,
-          12.975
+          77.6565,
+          14.598
         ]
       },
       "citizen": {
@@ -195,13 +195,13 @@
       "resolution_proof_url": null,
       "resolution_notes": null,
       "location": {
-        "address": "Sector 4 Commercial Complex, Gandhi Bazaar",
-        "landmark": "Near Municipal Park Gate",
-        "latitude": 12.962,
-        "longitude": 77.585,
+        "address": "Itukulapalli village entrance, near Anantha Lakshmi Engineering College, Anantapur",
+        "landmark": "Near the village market",
+        "latitude": 14.5949,
+        "longitude": 77.6538,
         "coordinates": [
-          77.585,
-          12.962
+          77.6538,
+          14.5949
         ]
       },
       "citizen": {
@@ -275,13 +275,13 @@
       "resolution_proof_url": null,
       "resolution_notes": null,
       "location": {
-        "address": "8th Cross, Indiranagar 2nd Stage",
-        "landmark": "Near BDA Community Hall",
-        "latitude": 12.9785,
-        "longitude": 77.6405,
+        "address": "Campus access road, near Anantha Lakshmi Engineering College, Itukulapalli, Anantapur",
+        "landmark": "Near the main access road",
+        "latitude": 14.6002,
+        "longitude": 77.6575,
         "coordinates": [
-          77.6405,
-          12.9785
+          77.6575,
+          14.6002
         ]
       },
       "citizen": {
@@ -343,13 +343,13 @@
       "resolution_proof_url": null,
       "resolution_notes": null,
       "location": {
-        "address": "Ring Road Service Lane, Koramangala 5th Block",
-        "landmark": "Near Water Booster Station",
-        "latitude": 12.935,
-        "longitude": 77.624,
+        "address": "Anantapur-Tirupati Highway, near Anantha Lakshmi Engineering College, Itukulapalli",
+        "landmark": "Near the highway junction",
+        "latitude": 14.5965,
+        "longitude": 77.6602,
         "coordinates": [
-          77.624,
-          12.935
+          77.6602,
+          14.5965
         ]
       },
       "citizen": {
@@ -436,13 +436,13 @@
       "resolution_proof_url": null,
       "resolution_notes": null,
       "location": {
-        "address": "Subhash Nagar Main Road, Low-lying Sector",
-        "landmark": "Near Government Dispensary",
-        "latitude": 12.981,
-        "longitude": 77.575,
+        "address": "Itukulapalli Main Road, near Anantha Lakshmi Engineering College, Anantapur",
+        "landmark": "Near the low-lying road section",
+        "latitude": 14.602,
+        "longitude": 77.654,
         "coordinates": [
-          77.575,
-          12.981
+          77.654,
+          14.602
         ]
       },
       "citizen": {
@@ -509,13 +509,13 @@
       "resolution_proof_url": null,
       "resolution_notes": null,
       "location": {
-        "address": "Residency Road, outside St. Joseph Primary School",
-        "landmark": "School Main Pedestrian Gate",
-        "latitude": 12.972,
-        "longitude": 77.608,
+        "address": "Near the college pedestrian gate, Itukulapalli, Anantapur",
+        "landmark": "Anantha Lakshmi Engineering College gate",
+        "latitude": 14.5975,
+        "longitude": 77.662,
         "coordinates": [
-          77.608,
-          12.972
+          77.662,
+          14.5975
         ]
       },
       "citizen": {
@@ -631,13 +631,13 @@
       "resolution_proof_url": "/uploads/proof_pothole.jpg",
       "resolution_notes": "Road crew dispatched under work order #RW-882. Excavated weak subgrade, filled with stone ballast, and completed bitumen blacktopping.",
       "location": {
-        "address": "Victoria Hospital Road, City Center",
-        "landmark": "Emergency Gate 1",
-        "latitude": 12.963,
-        "longitude": 77.574,
+        "address": "Anantapur-Tirupati Highway, near Anantha Lakshmi Engineering College, Itukulapalli",
+        "landmark": "Near the highway access road",
+        "latitude": 14.5952,
+        "longitude": 77.6562,
         "coordinates": [
-          77.574,
-          12.963
+          77.6562,
+          14.5952
         ]
       },
       "citizen": {
@@ -722,13 +722,13 @@
       "resolution_proof_url": "/uploads/proof_garbage.jpg",
       "resolution_notes": "Night sanitation squad deployed 2 tipper trucks. 4.2 tons of solid waste safely transported to composting facility. Penalty notice issued to adjacent contractor.",
       "location": {
-        "address": "Majestic Central Bus Stand Backside",
-        "landmark": "Platform 16 Exit",
-        "latitude": 12.977,
-        "longitude": 77.571,
+        "address": "Itukulapalli bus stop, near Anantha Lakshmi Engineering College, Anantapur",
+        "landmark": "Near the bus stop",
+        "latitude": 14.6032,
+        "longitude": 77.6582,
         "coordinates": [
-          77.571,
-          12.977
+          77.6582,
+          14.6032
         ]
       },
       "citizen": {
@@ -805,13 +805,13 @@
       "resolution_proof_url": null,
       "resolution_notes": null,
       "location": {
-        "address": "rushitej apartments, near JNTUA Auditorium, JNTUA road, Anantapur, Ananthapuram",
-        "landmark": "Rushitej apartments",
-        "latitude": 14.596825,
-        "longitude": 77.655741,
+        "address": "Near Itukulapalli, near Anantha Lakshmi Engineering College, Anantapur",
+        "landmark": "Near Anantha Lakshmi Engineering College",
+        "latitude": 14.5970078,
+        "longitude": 77.6557271,
         "coordinates": [
-          77.655741,
-          14.596825
+          77.6557271,
+          14.5970078
         ]
       },
       "citizen": {

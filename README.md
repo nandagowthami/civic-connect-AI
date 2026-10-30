@@ -23,7 +23,7 @@ A modern, responsive Smart City civic issue reporting portal and automated prior
 - **Spatial Duplicate Clustering**: Computes Haversine distance between new and active reports within 150m. If matching issues are found, reports are clustered (*"Reported by 9 citizens"*), elevating the issue's priority score.
 
 ### 3. Comprehensive Complaint Tracking
-- Search complaints by **Complaint ID** (`CC-2026-XXXX`), **Phone Number**, or **Email**.
+- Search complaints by **Complaint ID** (`CC-2026-XXXX`). Citizens can report and track a complaint ID without providing contact details.
 - Interactive 5-step visual progress timeline:
   `Submitted` $\to$ `AI Verified` $\to$ `Assigned` $\to$ `In Progress` $\to$ `Resolved`.
 - Citizen **"I Also Face This Issue"** crowd upvote button.
@@ -50,7 +50,7 @@ A modern, responsive Smart City civic issue reporting portal and automated prior
 |---|---|
 | **Frontend** | React 18, Vite, Tailwind CSS, Lucide Icons, Leaflet / React-Leaflet, Recharts, Canvas-Confetti |
 | **Backend** | Python 3, FastAPI, Uvicorn, Pydantic, Python-Jose (JWT), Passlib / Cryptography |
-| **Database** | MongoDB (`mongodb://localhost:27017`) with local document store fallback |
+| **Database** | MongoDB Atlas in production; local JSON fallback for development only |
 | **AI / Machine Learning** | Python Computer Vision (PIL/NumPy edge roughness & texture analysis) + NLP keyword extraction & Multi-factor Scoring Engine + Haversine spatial duplicate detector |
 
 ---
@@ -76,17 +76,19 @@ npm run dev
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 API Swagger Documentation is available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
+## Deploying to Vercel, Render, and MongoDB Atlas
+
+Use Vercel for the React frontend, Render for the FastAPI API, and MongoDB Atlas for persistent app data. This keeps the current Vercel site and replaces Railway with the Render account already available. The included `render.yaml` creates a small free API service. Render's free service sleeps after 15 minutes without requests and can take about a minute to wake. Its filesystem is temporary, so production uploads are stored in Atlas GridFS. This setup is intended for the class demo and a few simultaneous users, not production.
+
+1. Create an Atlas database and a database user limited to the `civicconnect_ai` database. Atlas requires a network access list. Use the network option supported by your Atlas and Render plans; if you choose broad `0.0.0.0/0` access for this demo, use a strong unique database password and store no real personal data.
+2. In Render, create a Blueprint from this repository and select `render.yaml`. Enter `MONGO_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `FRONTEND_ORIGINS`, `DEMO_ACCESS_KEY`, and `DEMO_PASSWORD` in Render's environment settings. Use unique secrets and never commit them. `FRONTEND_ORIGINS` is a comma-separated list of the exact Vercel production and preview domains. After the first deploy, copy the service's `onrender.com` URL.
+3. In Vercel Project Settings → Environment Variables, set `VITE_API_BASE_URL` to the Render API URL and `VITE_DEMO_MODE=true`. Apply them to Preview and Production, then redeploy so Vite includes them in the frontend build. These `VITE_` variables are public configuration; never put secrets there.
+4. At demo sign-in, enter the private `DEMO_ACCESS_KEY`, then choose a persona. All personas use the configured `DEMO_PASSWORD`. The API seeds anonymous example reports only if Atlas has no reports. Citizen registration asks only for a username and password.
+
+Production refuses to start without Atlas and strong JWT/admin credentials; it never falls back to the local JSON database. Uploaded photos are stored in GridFS and survive Render restarts. The Vercel site is public to anyone with the link; use a long, unguessable demo access key and do not reuse demo passwords elsewhere.
+
 ---
 
-## 👥 Default Demo Credentials
+## 👥 Demo Sign-in
 
-| Role | Email | Password |
-|---|---|---|
-| **Citizen** | `citizen@smartcity.gov` | `password123` |
-| **Municipal Admin** | `admin@smartcity.gov` | `admin123` |
-| **Roads Officer** | `officer.roads@smartcity.gov` | `officer123` |
-| **Sanitation Officer** | `officer.sanitation@smartcity.gov` | `officer123` |
-| **Electricity Officer** | `officer.electricity@smartcity.gov` | `officer123` |
-| **Water Supply Officer** | `officer.water@smartcity.gov` | `officer123` |
-
-*(Note: You can also use the **"Role: [Active]"** dropdown in the top navbar for instant 1-click persona switching)*
+The production role switcher uses the shared `DEMO_PASSWORD` configured in Render for each persona. The demo sign-in also requires the private `DEMO_ACCESS_KEY`. Never put either value in source code or a `VITE_` variable. Local development uses the sample credentials above; they are not valid in the deployed demo.

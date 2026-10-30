@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ..database import departments_col, complaints_col, users_col
+from database import departments_col, complaints_col, users_col
 
 router = APIRouter(prefix="/api/departments", tags=["Departments"])
 

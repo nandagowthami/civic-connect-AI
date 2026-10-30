@@ -1,29 +1,56 @@
 import os
 import hashlib
+import hmac
+import secrets
+import re
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from ..database import users_col
-from ..models import UserRegister, UserLogin, UserResponse, TokenResponse
+from database import users_col
+from models import UserRegister, UserLogin, UserResponse, TokenResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
-SECRET_KEY = os.getenv("JWT_SECRET", "civicconnect-super-secure-smart-city-jwt-secret-key-2026")
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+SECRET_KEY = os.getenv("JWT_SECRET") or "local-development-only-change-before-deploying"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days for ease of testing
 
 security = HTTPBearer(auto_error=False)
 
 def hash_password(password: str) -> str:
-    # SHA-256 with fixed salt for consistent, fast, portable authentication
-    salt = "civicconnect_ai_salt_"
-    return hashlib.sha256((salt + password).encode("utf-8")).hexdigest()
+    salt = secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 310_000)
+    return f"pbkdf2_sha256$310000${salt.hex()}${digest.hex()}"
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return hash_password(plain_password) == hashed_password
+    try:
+        algorithm, rounds, salt_hex, digest_hex = hashed_password.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        digest = hashlib.pbkdf2_hmac(
+            "sha256", plain_password.encode("utf-8"), bytes.fromhex(salt_hex), int(rounds)
+        )
+        return hmac.compare_digest(digest.hex(), digest_hex)
+    except (ValueError, TypeError):
+        # Legacy local demo accounts are upgraded after a successful login.
+        legacy = hashlib.sha256(("civicconnect_ai_salt_" + plain_password).encode("utf-8")).hexdigest()
+        return hmac.compare_digest(legacy, hashed_password or "")
+
+
+def require_admin(user: dict = Depends(require_current_user)) -> dict:
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Administrator access required.")
+    return user
+
+
+def require_officer_or_admin(user: dict = Depends(require_current_user)) -> dict:
+    if user.get("role") not in {"officer", "admin"}:
+        raise HTTPException(status_code=403, detail="Officer access required.")
+    return user
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -58,7 +85,13 @@ def require_current_user(user: Optional[dict] = Depends(get_current_user)) -> di
 
 @router.post("/register", response_model=TokenResponse)
 def register(req: UserRegister):
-    existing = users_col.find_one({"email": req.email.lower()})
+    username = req.email.split("@", 1)[0]
+    if not req.email.lower().endswith("@citizen.local") or not re.fullmatch(r"[a-zA-Z0-9._-]{3,24}", username):
+        raise HTTPException(status_code=400, detail="Choose a username using 3–24 letters, numbers, dots, underscores, or hyphens.")
+    if len(req.password) < 12:
+        raise HTTPException(status_code=400, detail="Choose a password with at least 12 characters.")
+    req_email = f"{username.lower()}@citizen.local"
+    existing = users_col.find_one({"email": req_email})
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -69,12 +102,13 @@ def register(req: UserRegister):
     user_doc = {
         "_id": user_id,
         "id": user_id,
-        "name": req.name,
-        "email": req.email.lower(),
+        "name": "Anonymous Citizen",
+        "email": req_email,
         "password_hash": hash_password(req.password),
-        "phone": req.phone or "",
-        "role": req.role or "citizen",
-        "department": req.department,
+        "phone": "",
+        # Public registration can only create citizen accounts.
+        "role": "citizen",
+        "department": None,
         "created_at": datetime.utcnow().isoformat()
     }
     users_col.insert_one(user_doc)
@@ -93,12 +127,18 @@ def register(req: UserRegister):
 
 @router.post("/login", response_model=TokenResponse)
 def login(req: UserLogin):
-    user = users_col.find_one({"email": req.email.lower()})
+    login_identifier = req.email.strip().lower()
+    if "@" not in login_identifier:
+        login_identifier = f"{login_identifier}@citizen.local"
+    user = users_col.find_one({"email": login_identifier})
     if not user or not verify_password(req.password, user.get("password_hash", "")):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password."
         )
+
+    if not user.get("password_hash", "").startswith("pbkdf2_sha256$"):
+        users_col.update_one({"_id": user.get("_id")}, {"$set": {"password_hash": hash_password(req.password)}})
     
     uid = str(user.get("_id") or user.get("id"))
     access_token = create_access_token(data={"sub": uid, "role": user.get("role"), "name": user.get("name")})
@@ -127,7 +167,7 @@ def me(user: dict = Depends(require_current_user)):
     )
 
 @router.post("/demo-switch/{role_key}", response_model=TokenResponse)
-def demo_switch(role_key: str):
+def demo_switch(role_key: str, demo_access_key: Optional[str] = Header(None, alias="X-Demo-Key")):
     """
     Convenient 1-click role switcher for live demo and testing:
     - 'citizen' -> Citizen user
@@ -137,6 +177,15 @@ def demo_switch(role_key: str):
     - 'electricity_officer' -> Electricity Department Officer
     - 'water_officer' -> Water Supply Department Officer
     """
+    if os.getenv("DEMO_MODE", "true").lower() not in {"1", "true", "yes"}:
+        raise HTTPException(status_code=404, detail="Demo sign-in is disabled.")
+    if APP_ENV == "production":
+        expected_key = os.getenv("DEMO_ACCESS_KEY", "")
+        if not expected_key or len(expected_key) < 24:
+            raise HTTPException(status_code=404, detail="Demo sign-in is disabled.")
+        if not demo_access_key or not hmac.compare_digest(demo_access_key, expected_key):
+            raise HTTPException(status_code=403, detail="A valid demo access key is required.")
+
     email_map = {
         "citizen": "citizen@smartcity.gov",
         "admin": "admin@smartcity.gov",

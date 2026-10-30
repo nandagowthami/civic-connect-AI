@@ -7,25 +7,34 @@ from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 
 logger = logging.getLogger("civicconnect.db")
 
-MONGO_URI = "mongodb+srv://nandagowthaminallagarla_db_user:Q9EDFj5c4c927aQu@cluster0.hutgjva.mongodb.net/"
-DB_NAME =  "civicconnect_ai"
+MONGO_URI = os.getenv("MONGO_URI")
+DB_NAME = os.getenv("DB_NAME", "civicconnect_ai")
+APP_ENV = os.getenv("APP_ENV", "development").lower()
 
 client = None
 db = None
 is_mongo_active = False
 
-try:
-    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=2500, tlsAllowInvalidCertificates=True)
-    # Ping database to verify connection
-    client.admin.command('ping')
-    db = client[DB_NAME]
-    is_mongo_active = True
-    print(f"Connected to MongoDB at {MONGO_URI} (Database: {DB_NAME})")
-    
-
-except Exception as e:
-    print(f"MongoDB ping error: {e}. Active fallback enabled.")
-    is_mongo_active = False
+if MONGO_URI:
+    try:
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=2500)
+        client.admin.command("ping")
+        db = client[DB_NAME]
+        is_mongo_active = True
+        logger.info("Connected to MongoDB database %s", DB_NAME)
+    except Exception as e:
+        if APP_ENV == "production":
+            raise RuntimeError("MongoDB is configured but unreachable; refusing to start with ephemeral local storage.") from e
+        logger.warning(
+            "MongoDB connection failed (%s); using local fallback.",
+            type(e).__name__,
+        )
+        if client is not None:
+            client.close()
+else:
+    if APP_ENV == "production":
+        raise RuntimeError("MONGO_URI is required in production.")
+    logger.warning("MONGO_URI is not configured; using local fallback.")
 
 FALLBACK_FILE = os.path.join(os.path.dirname(__file__), "local_store.json")
 
@@ -70,7 +79,7 @@ class CollectionWrapper:
                         d["_id"] = str(d["_id"])
                 return docs
             except Exception as e:
-                print(f"MongoDB find failed: {e}")
+                raise RuntimeError("MongoDB query failed; local fallback is disabled while MongoDB is configured.") from e
         
         data = load_fallback()
         items = data.get(self.name, [])
@@ -104,7 +113,7 @@ class CollectionWrapper:
                     doc["_id"] = str(doc["_id"])
                 return doc
             except Exception as e:
-                print(f"MongoDB find_one failed: {e}")
+                raise RuntimeError("MongoDB query failed; local fallback is disabled while MongoDB is configured.") from e
         res = self.find(query, limit=1)
         return res[0] if res else None
 
@@ -121,7 +130,7 @@ class CollectionWrapper:
                 doc["_id"] = str(res.inserted_id)
                 return doc
             except Exception as e:
-                print(f"MongoDB insert_one error: {e}")
+                raise RuntimeError("MongoDB insert failed; local fallback is disabled while MongoDB is configured.") from e
         
         data = load_fallback()
         data.setdefault(self.name, []).append(doc)
@@ -134,7 +143,7 @@ class CollectionWrapper:
                 res = db[self.name].update_one(query, update)
                 return res.matched_count > 0
             except Exception as e:
-                print(f"MongoDB update_one error: {e}")
+                raise RuntimeError("MongoDB update failed; local fallback is disabled while MongoDB is configured.") from e
         
         data = load_fallback()
         items = data.get(self.name, [])
@@ -164,7 +173,7 @@ class CollectionWrapper:
             try:
                 return db[self.name].count_documents(query)
             except Exception as e:
-                print(f"MongoDB count_documents error: {e}")
+                raise RuntimeError("MongoDB count failed; local fallback is disabled while MongoDB is configured.") from e
         return len(self.find(query))
 
     def delete_many(self, query=None):
@@ -172,8 +181,8 @@ class CollectionWrapper:
         if is_mongo_active and db is not None:
             try:
                 return db[self.name].delete_many(query)
-            except Exception:
-                pass
+            except Exception as e:
+                raise RuntimeError("MongoDB delete failed; local fallback is disabled while MongoDB is configured.") from e
         data = load_fallback()
         data[self.name] = []
         save_fallback(data)

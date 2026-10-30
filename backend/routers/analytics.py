@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from collections import Counter
 from datetime import datetime
-from ..database import complaints_col
+from database import complaints_col
 
 router = APIRouter(prefix="/api/analytics", tags=["Analytics"])
 

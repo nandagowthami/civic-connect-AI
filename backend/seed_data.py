@@ -2,21 +2,75 @@ import os
 import uuid
 from datetime import datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
-from .database import users_col, complaints_col, departments_col, status_history_col, notifications_col
-from .routers.auth import hash_password
-from .routers.departments import DEFAULT_DEPARTMENTS
-from .ai_engine import analyze_issue
+from database import users_col, complaints_col, departments_col, status_history_col, notifications_col
+from routers.auth import hash_password
+from routers.departments import DEFAULT_DEPARTMENTS
+from ai_engine import analyze_issue
+from database import db, is_mongo_active
 
-UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "uploads"))
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+DEFAULT_UPLOAD_DIR = "/tmp/civicconnect/uploads" if APP_ENV == "production" else os.path.join(os.path.dirname(__file__), "..", "uploads")
+UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", DEFAULT_UPLOAD_DIR))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "proofs"), exist_ok=True)
+
+DEMO_LOCATION_UPDATES = {
+    "CC-2026-1042": ("Itukulapalli Road, near Anantha Lakshmi Engineering College, Anantapur", "Near the college entrance", 14.5980, 77.6565),
+    "CC-2026-1043": ("Itukulapalli village entrance, near Anantha Lakshmi Engineering College, Anantapur", "Near the village market", 14.5949, 77.6538),
+    "CC-2026-1044": ("Campus access road, near Anantha Lakshmi Engineering College, Itukulapalli, Anantapur", "Near the main access road", 14.6002, 77.6575),
+    "CC-2026-1045": ("Anantapur-Tirupati Highway, near Anantha Lakshmi Engineering College, Itukulapalli", "Near the highway junction", 14.5965, 77.6602),
+    "CC-2026-1046": ("Itukulapalli Main Road, near Anantha Lakshmi Engineering College, Anantapur", "Near the low-lying road section", 14.6020, 77.6540),
+    "CC-2026-1047": ("Near the college pedestrian gate, Itukulapalli, Anantapur", "Anantha Lakshmi Engineering College gate", 14.5975, 77.6620),
+    "CC-2026-1038": ("Anantapur-Tirupati Highway, near Anantha Lakshmi Engineering College, Itukulapalli", "Near the highway access road", 14.5952, 77.6562),
+    "CC-2026-1039": ("Itukulapalli bus stop, near Anantha Lakshmi Engineering College, Anantapur", "Near the bus stop", 14.6032, 77.6582),
+    "CC-2026-8305": ("Near Itukulapalli, near Anantha Lakshmi Engineering College, Anantapur", "Near Anantha Lakshmi Engineering College", 14.5970078, 77.6557271),
+}
+
+def update_demo_report_locations():
+    """Move existing demo reports to the Anantapur campus area."""
+    for complaint_id, (address, landmark, latitude, longitude) in DEMO_LOCATION_UPDATES.items():
+        update = {
+            "location": {
+                "address": address,
+                "landmark": landmark,
+                "latitude": latitude,
+                "longitude": longitude,
+                "coordinates": [longitude, latitude],
+            }
+        }
+        if complaint_id == "CC-2026-1042":
+            update["description"] = (
+                "There is a massive 2-foot deep pothole on Itukulapalli Road near "
+                "Anantha Lakshmi Engineering College. Multiple two-wheelers have "
+                "skidded and cars are suffering axle damage. It poses an immediate "
+                "accident danger during peak hours."
+            )
+        complaints_col.update_one({"complaint_id": complaint_id}, {"$set": update})
 
 def generate_sample_civic_image(filename: str, title: str, subtitle: str, bg_color: tuple, accent_color: tuple):
     """Generates an aesthetic smart city photo placeholder with civic iconography."""
     filepath = os.path.join(UPLOAD_DIR, filename)
+    production_image_url = f"/api/issues/image/{filename}"
+    if APP_ENV == "production" and is_mongo_active and db is not None:
+        from gridfs import GridFSBucket
+        bucket = GridFSBucket(db, bucket_name="report_images")
+        if not next(iter(bucket.find({"filename": filename}).limit(1)), None):
+            if not os.path.exists(filepath):
+                os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                _generate_sample_image(filepath, title, subtitle, bg_color, accent_color)
+            with open(filepath, "rb") as image_file, bucket.open_upload_stream(
+                filename, metadata={"content_type": "image/jpeg", "subdir": "sample"}
+            ) as stream:
+                stream.write(image_file.read())
+        return production_image_url
     if os.path.exists(filepath):
         return f"/uploads/{filename}"
 
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    _generate_sample_image(filepath, title, subtitle, bg_color, accent_color)
+    return f"/uploads/{filename}"
+
+def _generate_sample_image(filepath: str, title: str, subtitle: str, bg_color: tuple, accent_color: tuple):
     img = Image.new("RGB", (800, 500), color=bg_color)
     draw = ImageDraw.Draw(img)
 
@@ -43,12 +97,11 @@ def generate_sample_civic_image(filename: str, title: str, subtitle: str, bg_col
     draw.text((70, 410), "Geo-Tagged & AI Verified • CivicConnect AI System", fill=(160, 180, 200))
 
     img.save(filepath, format="JPEG", quality=85)
-    return f"/uploads/{filename}"
 
-def seed_database():
+def seed_database(include_users=True, demo_citizen_id="user_citizen_1"):
     """Initializes seed users, sample civic complaints, and audit records."""
     existing_users = users_col.count_documents()
-    if existing_users > 0:
+    if include_users and existing_users > 0:
         print("Database already contains records. Skipping full reseed.")
         return
 
@@ -118,16 +171,17 @@ def seed_database():
         }
     ]
 
-    for u in sample_users:
-        users_col.insert_one(u)
+    if include_users:
+        for u in sample_users:
+            users_col.insert_one(u)
 
     # 2. Seed Sample Images
-    img_pothole = generate_sample_civic_image("sample_pothole.jpg", "Severe Road Crater & Pothole", "MG Road Junction near Metro Station", (40, 50, 60), (220, 38, 38))
+    img_pothole = generate_sample_civic_image("sample_pothole.jpg", "Severe Road Crater & Pothole", "Itukulapalli Road near Anantha Lakshmi College", (40, 50, 60), (220, 38, 38))
     img_garbage = generate_sample_civic_image("sample_garbage.jpg", "Garbage Dump Overflow", "Sector 4 Market Main Entrance", (35, 65, 45), (22, 163, 74))
-    img_light = generate_sample_civic_image("sample_streetlight.jpg", "Broken Dark Streetlight Fixture", "8th Cross, Residential Colony", (25, 30, 45), (234, 179, 8))
-    img_water = generate_sample_civic_image("sample_water.jpg", "Main Drinking Water Pipeline Burst", "Ring Road Flyover Service Lane", (20, 55, 80), (2, 132, 199))
-    img_drainage = generate_sample_civic_image("sample_drainage.jpg", "Overflowing Stormwater Drain", "Subhash Nagar Low-Lying Area", (45, 40, 60), (139, 92, 246))
-    img_hazard = generate_sample_civic_image("sample_hazard.jpg", "Hanging Live Electric Wire Near School", "Near St. Joseph Primary School", (60, 20, 25), (225, 29, 72))
+    img_light = generate_sample_civic_image("sample_streetlight.jpg", "Broken Dark Streetlight Fixture", "Itukulapalli Campus Access Road", (25, 30, 45), (234, 179, 8))
+    img_water = generate_sample_civic_image("sample_water.jpg", "Main Drinking Water Pipeline Burst", "Anantapur-Tirupati Highway near ALITS", (20, 55, 80), (2, 132, 199))
+    img_drainage = generate_sample_civic_image("sample_drainage.jpg", "Overflowing Stormwater Drain", "Itukulapalli near Anantha Lakshmi College", (45, 40, 60), (139, 92, 246))
+    img_hazard = generate_sample_civic_image("sample_hazard.jpg", "Hanging Live Electric Wire Near School", "Near Itukulapalli College Gate", (60, 20, 25), (225, 29, 72))
     
     proof_pothole = generate_sample_civic_image("proof_pothole.jpg", "COMPLETED: Asphalt Resurfaced & Leveled", "Official Resolution Inspection by Roads Dept", (20, 60, 35), (34, 197, 94))
     proof_garbage = generate_sample_civic_image("proof_garbage.jpg", "COMPLETED: Site Cleared & Disinfected", "Sanitation Sanitation Drive Report", (20, 60, 35), (34, 197, 94))
@@ -139,126 +193,126 @@ def seed_database():
         {
             "cid": "CC-2026-1042",
             "title": "Massive deep pothole causing vehicle damage and traffic bottleneck",
-            "desc": "There is a massive 2-foot deep pothole on MG Road near the Metro Station entrance. Multiple two-wheelers have skidded and cars are suffering axle damage. It poses an immediate accident danger during peak hours.",
+            "desc": "There is a massive 2-foot deep pothole on Itukulapalli Road near Anantha Lakshmi Engineering College. Multiple two-wheelers have skidded and cars are suffering axle damage. It poses an immediate accident danger during peak hours.",
             "category": "Pothole",
-            "address": "MG Road, near Metro Pillar 142, Central Ward",
-            "landmark": "Opposite Metro Station Gate 2",
-            "lat": 12.9750,
-            "lng": 77.6050,
+            "address": "Itukulapalli Road, near Anantha Lakshmi Engineering College, Anantapur",
+            "landmark": "Near the college entrance",
+            "lat": 14.5980,
+            "lng": 77.6565,
             "status": "In Progress",
             "img": img_pothole,
             "report_count": 9,  # High crowd duplicate cluster!
             "created_days_ago": 2,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1043",
             "title": "Overflowing garbage dump attracting stray animals and severe stench",
             "desc": "The community waste bin has not been cleared for 4 days. Waste is spilling onto the roadway, blocking pedestrian footpath and causing severe sanitary risk to adjacent vegetable shops.",
             "category": "Garbage Problem",
-            "address": "Sector 4 Commercial Complex, Gandhi Bazaar",
-            "landmark": "Near Municipal Park Gate",
-            "lat": 12.9620,
-            "lng": 77.5850,
+            "address": "Itukulapalli village entrance, near Anantha Lakshmi Engineering College, Anantapur",
+            "landmark": "Near the village market",
+            "lat": 14.5949,
+            "lng": 77.6538,
             "status": "Assigned",
             "img": img_garbage,
             "report_count": 4,
             "created_days_ago": 1,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1044",
             "title": "Broken streetlights leaving entire street in pitch darkness",
             "desc": "Three consecutive streetlights are non-functional on 8th Cross Road. The whole stretch is pitch dark after 7 PM, creating safety concerns for women and evening pedestrians.",
             "category": "Broken Streetlight",
-            "address": "8th Cross, Indiranagar 2nd Stage",
-            "landmark": "Near BDA Community Hall",
-            "lat": 12.9785,
-            "lng": 77.6405,
+            "address": "Campus access road, near Anantha Lakshmi Engineering College, Itukulapalli",
+            "landmark": "Near the main access road",
+            "lat": 14.6002,
+            "lng": 77.6575,
             "status": "Assigned",
             "img": img_light,
             "report_count": 2,
             "created_days_ago": 3,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1045",
             "title": "Major potable water pipeline burst gushing thousands of liters",
             "desc": "An underground supply pipeline has fractured under high pressure. Clean drinking water is gushing across the road and flooding the basements of nearby shops. Immediate valve shutdown required!",
             "category": "Water Leakage",
-            "address": "Ring Road Service Lane, Koramangala 5th Block",
-            "landmark": "Near Water Booster Station",
-            "lat": 12.9350,
-            "lng": 77.6240,
+            "address": "Anantapur-Tirupati Highway, near Anantha Lakshmi Engineering College, Itukulapalli",
+            "landmark": "Near the highway junction",
+            "lat": 14.5965,
+            "lng": 77.6602,
             "status": "In Progress",
             "img": img_water,
             "report_count": 7,
             "created_days_ago": 1,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1046",
             "title": "Clogged storm drainage overflowing black sewage water",
             "desc": "The main roadside stormwater drain is choked with silt and plastic debris. Dirty sewage water is backing up onto the pavement and entering residential compound gates.",
             "category": "Drainage Problem",
-            "address": "Subhash Nagar Main Road, Low-lying Sector",
-            "landmark": "Near Government Dispensary",
-            "lat": 12.9810,
-            "lng": 77.5750,
+            "address": "Itukulapalli Main Road, near Anantha Lakshmi Engineering College, Anantapur",
+            "landmark": "Near the low-lying road section",
+            "lat": 14.6020,
+            "lng": 77.6540,
             "status": "Assigned",
             "img": img_drainage,
             "report_count": 3,
             "created_days_ago": 2,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1047",
             "title": "DANGEROUS: Hanging live electric wire sparking near school gate",
             "desc": "High voltage overhead power line has snapped and is dangling only 5 feet above the pedestrian walkway right outside the school entrance. Continuous electric sparks observed. High electrocution hazard!",
             "category": "Public Safety Issue",
-            "address": "Residency Road, outside St. Joseph Primary School",
-            "landmark": "School Main Pedestrian Gate",
-            "lat": 12.9720,
-            "lng": 77.6080,
+            "address": "Near the college pedestrian gate, Itukulapalli, Anantapur",
+            "landmark": "Anantha Lakshmi Engineering College gate",
+            "lat": 14.5975,
+            "lng": 77.6620,
             "status": "In Progress",
             "img": img_hazard,
             "report_count": 12,  # Extreme crowd report
             "created_days_ago": 0,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1038",
             "title": "Asphalt cave-in and pothole near Hospital Emergency entrance",
             "desc": "Road surface eroded by recent rains near the emergency ward gate, impeding ambulance movement. Successfully repaired with hot asphalt mix by municipal road engineers.",
             "category": "Pothole",
-            "address": "Victoria Hospital Road, City Center",
-            "landmark": "Emergency Gate 1",
-            "lat": 12.9630,
-            "lng": 77.5740,
+            "address": "Anantapur-Tirupati Highway, near Anantha Lakshmi Engineering College, Itukulapalli",
+            "landmark": "Near the highway access road",
+            "lat": 14.5952,
+            "lng": 77.6562,
             "status": "Resolved",
             "img": img_pothole,
             "resolution_img": proof_pothole,
             "resolution_notes": "Road crew dispatched under work order #RW-882. Excavated weak subgrade, filled with stone ballast, and completed bitumen blacktopping.",
             "report_count": 6,
             "created_days_ago": 5,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         },
         {
             "cid": "CC-2026-1039",
             "title": "Illegal debris and commercial waste dumping behind bus terminus",
             "desc": "Commercial building debris and organic waste cleared using compacting trucks. Area disinfected with bleaching powder.",
             "category": "Garbage Problem",
-            "address": "Majestic Central Bus Stand Backside",
-            "landmark": "Platform 16 Exit",
-            "lat": 12.9770,
-            "lng": 77.5710,
+            "address": "Itukulapalli bus stop, near Anantha Lakshmi Engineering College, Anantapur",
+            "landmark": "Near the bus stop",
+            "lat": 14.6032,
+            "lng": 77.6582,
             "status": "Resolved",
             "img": img_garbage,
             "resolution_img": proof_garbage,
             "resolution_notes": "Night sanitation squad deployed 2 tipper trucks. 4.2 tons of solid waste safely transported to composting facility. Penalty notice issued to adjacent contractor.",
             "report_count": 5,
             "created_days_ago": 6,
-            "user_id": "user_citizen_1"
+            "user_id": demo_citizen_id
         }
     ]
 
@@ -300,9 +354,9 @@ def seed_database():
             },
             "citizen": {
                 "id": item["user_id"],
-                "name": "Arun Sharma",
-                "email": "citizen@smartcity.gov",
-                "phone": "+91 98765 43210"
+                "name": "Anonymous Citizen",
+                "email": "",
+                "phone": ""
             },
             "ai_analysis": ai_res,
             "report_count": item["report_count"],
@@ -326,7 +380,7 @@ def seed_database():
             "status": "Submitted",
             "title": "Citizen Complaint Registered",
             "description": f"Registered with photo and GPS location coordinates.",
-            "updated_by": "Arun Sharma",
+            "updated_by": "Anonymous Citizen",
             "timestamp": c_time
         })
 
@@ -363,4 +417,5 @@ def seed_database():
                 "timestamp": (now - timedelta(hours=2)).isoformat()
             })
 
-    print(f"Seeded {len(sample_users)} users and {len(raw_complaints)} realistic complaints successfully!")
+    users_message = f"{len(sample_users)} users and " if include_users else ""
+    print(f"Seeded {users_message}{len(raw_complaints)} realistic complaints successfully!")
