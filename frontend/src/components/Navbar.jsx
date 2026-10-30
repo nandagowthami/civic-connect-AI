@@ -26,7 +26,7 @@ export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const getDashboardLabel = () => {
-    if (!user) return 'Dashboard';
+    if (!user) return 'Public Dashboard';
     if (user.role === 'admin') return 'Admin Portal';
     if (user.role === 'officer') return `${user.department?.split(' ')[0] || 'Officer'} Portal`;
     return 'Citizen Dashboard';

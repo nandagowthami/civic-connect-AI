@@ -22,6 +22,7 @@ import { assetUrl } from '../lib/runtime';
 
 export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
   const { user } = useAuth();
+  const isGuest = !user;
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('All');
@@ -31,7 +32,11 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
     const fetchComplaints = async () => {
       setLoading(true);
       try {
-        const res = await axios.get('/api/issues');
+        const userId = user?.id || user?._id;
+        const endpoint = user?.role === 'citizen' && userId
+          ? `/api/issues?citizen_id=${encodeURIComponent(userId)}`
+          : '/api/issues';
+        const res = await axios.get(endpoint);
         setComplaints(res.data);
       } catch (err) {
         console.error('Error fetching complaints:', err);
@@ -72,10 +77,12 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Citizen Civic Portal
+            {isGuest ? 'Public Civic Dashboard' : 'Citizen Civic Portal'}
           </h1>
           <p className="text-sm text-slate-600 mt-1">
-            Welcome back, <strong className="text-slate-800">{user?.name || 'Citizen'}</strong>. Track your reports and monitor civic repair progress.
+            {isGuest
+              ? 'Browse community reports and follow local repair progress. Sign in to see reports linked to your account.'
+              : <>Welcome back, <strong className="text-slate-800">{user.name || 'Citizen'}</strong>. Track your reports and monitor civic repair progress.</>}
           </p>
         </div>
 
@@ -93,7 +100,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-              Total Complaints
+              {isGuest ? 'Public Reports' : 'My Complaints'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 block">
               {total}
@@ -108,7 +115,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-              Pending Complaints
+              {isGuest ? 'Awaiting Dispatch' : 'Pending Complaints'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1 block">
               {pending}
@@ -123,7 +130,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-              Issues In Progress
+              {isGuest ? 'Community In Progress' : 'Issues In Progress'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-smart-600 mt-1 block">
               {inProgress}
@@ -138,7 +145,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
         <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-              Resolved Complaints
+              {isGuest ? 'Community Resolved' : 'Resolved Complaints'}
             </span>
             <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1 block">
               {resolved}
@@ -177,7 +184,7 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
             type="text"
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
-            placeholder="Search my complaints..."
+            placeholder={isGuest ? 'Search public reports...' : 'Search my complaints...'}
             className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-smart-500"
           />
         </div>
@@ -187,15 +194,19 @@ export const CitizenDashboard = ({ setTab, onSelectComplaint }) => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-900">
-            My Civic Complaints & Reports ({filtered.length})
+            {isGuest ? 'Community Civic Reports' : 'My Civic Complaints & Reports'} ({filtered.length})
           </h2>
         </div>
 
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-slate-500">
             <Building2 className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-            <p className="font-semibold text-sm">No complaints found matching this filter.</p>
-            <p className="text-xs text-slate-400 mt-1">Try switching tabs or report a new issue.</p>
+            <p className="font-semibold text-sm">
+              {isGuest ? 'No public reports match this filter.' : 'You have no complaints matching this filter.'}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              {isGuest ? 'Try another filter or report a public issue.' : 'Try another filter or report a new issue.'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
