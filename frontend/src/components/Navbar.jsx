@@ -49,6 +49,13 @@ export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    setShowRoleMenu(false);
+    setDemoAccessKey('');
+    setTab('home');
+  };
+
   const getDashboardLabel = () => {
     if (!user) return 'Public Dashboard';
     if (user.role === 'admin') return 'Admin Portal';
@@ -270,7 +277,7 @@ export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
                   <div className="text-[10px] text-slate-500 capitalize">{user.role}</div>
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                   title="Log out"
                 >
