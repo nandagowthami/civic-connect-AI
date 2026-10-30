@@ -36,6 +36,11 @@ export const AuthProvider = ({ children }) => {
 
   // Fetch notifications
   const fetchNotifications = async () => {
+    if (!token) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
     try {
       const res = await axios.get('/api/notifications');
       setNotifications(res.data);
@@ -77,13 +82,20 @@ export const AuthProvider = ({ children }) => {
 
   const switchRole = async (roleKey) => {
     try {
-      const res = await axios.post(`/api/auth/demo-switch/${roleKey}`);
+      const demoAccessKey = import.meta.env.PROD && import.meta.env.VITE_DEMO_MODE === 'true'
+        ? window.prompt('Enter the class demo access key:')
+        : null;
+      if (import.meta.env.PROD && import.meta.env.VITE_DEMO_MODE === 'true' && !demoAccessKey) return null;
+      const res = await axios.post(`/api/auth/demo-switch/${roleKey}`, null, {
+        headers: demoAccessKey ? { 'X-Demo-Key': demoAccessKey } : undefined,
+      });
       setToken(res.data.access_token);
       setUser(res.data.user);
       fetchNotifications();
       return res.data.user;
     } catch (err) {
       console.error('Demo switch error:', err);
+      throw err;
     }
   };
 
