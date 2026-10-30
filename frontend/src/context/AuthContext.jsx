@@ -80,21 +80,22 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('civicconnect_token');
   };
 
-  const switchRole = async (roleKey) => {
+  const switchRole = async (roleKey, demoAccessKey = '') => {
     try {
-      const demoAccessKey = import.meta.env.PROD && import.meta.env.VITE_DEMO_MODE === 'true'
-        ? window.prompt('Enter the class demo access key:')
-        : null;
-      if (import.meta.env.PROD && import.meta.env.VITE_DEMO_MODE === 'true' && !demoAccessKey) return null;
+      const requiresDemoKey = import.meta.env.PROD && import.meta.env.VITE_DEMO_MODE === 'true';
+      if (requiresDemoKey && !demoAccessKey.trim()) {
+        throw new Error('Enter the class demo access key to continue.');
+      }
       const res = await axios.post(`/api/auth/demo-switch/${roleKey}`, null, {
-        headers: demoAccessKey ? { 'X-Demo-Key': demoAccessKey } : undefined,
+        headers: requiresDemoKey ? { 'X-Demo-Key': demoAccessKey.trim() } : undefined,
       });
       setToken(res.data.access_token);
       setUser(res.data.user);
       fetchNotifications();
       return res.data.user;
     } catch (err) {
-      console.error('Demo switch error:', err);
+      // Axios errors retain request headers; never log the demo access key.
+      console.error('Demo switch request failed with status:', err.response?.status || 'network error');
       throw err;
     }
   };

@@ -14,9 +14,11 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
   // Register state
   const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [demoAccessKey, setDemoAccessKey] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const demoKeyRequired = import.meta.env.PROD && import.meta.env.VITE_DEMO_MODE === 'true';
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -51,15 +53,20 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
   };
 
   const handleDemoLogin = async (key) => {
+    if (demoKeyRequired && !demoAccessKey.trim()) {
+      setError('Enter the class demo access key above to continue.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const demoUser = await switchRole(key);
+      const demoUser = await switchRole(key, demoAccessKey);
       if (!demoUser) return;
       setTab(key === 'admin' ? 'admin_dashboard' : key.includes('officer') ? 'department_dashboard' : 'citizen_dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Demo sign-in failed. Check the demo access key and server configuration.');
     } finally {
+      setDemoAccessKey('');
       setLoading(false);
     }
   };
@@ -82,8 +89,24 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
       {DEMO_MODE && <div className="bg-gradient-to-tr from-smart-50 to-indigo-50 border border-smart-200 rounded-2xl p-4 shadow-sm space-y-2.5">
         <div className="flex items-center gap-1.5 text-xs font-bold text-smart-800">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>Quick Demo Personas (class access key required)</span>
+          <span>{demoKeyRequired ? 'Quick Demo Personas (class access key required)' : 'Quick Demo Personas'}</span>
         </div>
+        {demoKeyRequired && (
+          <div className="space-y-1.5">
+            <label htmlFor="demo-access-key" className="block text-xs font-semibold text-slate-700">Class demo access key</label>
+            <input
+              id="demo-access-key"
+              name="demo-access-key"
+              type="password"
+              value={demoAccessKey}
+              onChange={(e) => { setDemoAccessKey(e.target.value); setError(''); }}
+              autoComplete="off"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-smart-500"
+              placeholder="Enter the class access key"
+            />
+            <p className="text-[10px] text-slate-500">This key authorizes a demo persona; it is not your account password.</p>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <button
             type="button"
