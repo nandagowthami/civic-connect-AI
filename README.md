@@ -76,28 +76,19 @@ npm run dev
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 API Swagger Documentation is available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-## Deploying to Vercel and Railway
+## Deploying to Vercel, Render, and MongoDB Atlas
 
-Vercel builds the React frontend using `vercel.json`. Railway builds the FastAPI API from `Dockerfile`; MongoDB Atlas stores persistent application data. One Railway replica and one MongoDB cluster are sufficient for this small class demo. Add a Railway volume mounted at `/data` so uploaded report images persist across restarts.
+Use Vercel for the React frontend, Render for the FastAPI API, and MongoDB Atlas for persistent app data. This keeps the current Vercel site and replaces Railway with the Render account already available. The included `render.yaml` creates a small free API service. Render's free service sleeps after 15 minutes without requests and can take about a minute to wake. Its filesystem is temporary, so production uploads are stored in Atlas GridFS. This setup is intended for the class demo and a few simultaneous users, not production.
 
-1. Create a MongoDB Atlas database and copy its URI. Restrict network access to the Railway service where practical.
-2. Deploy this repository to Railway using `railway.json` and `Dockerfile`. Add a volume mounted at `/data`.
-3. Set the backend variables from `backend/.env.example` in Railway. Set `FRONTEND_ORIGINS` to the exact Vercel domain(s), plus a unique `JWT_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`. The administrator account is created on first start.
-4. Deploy this repository to Vercel. Set `VITE_API_BASE_URL` to the Railway public service URL. Leave `VITE_DEMO_MODE` unset or `false` unless you want the demo persona switcher visible.
+1. Create an Atlas database and a database user limited to the `civicconnect_ai` database. Atlas requires a network access list. Use the network option supported by your Atlas and Render plans; if you choose broad `0.0.0.0/0` access for this demo, use a strong unique database password and store no real personal data.
+2. In Render, create a Blueprint from this repository and select `render.yaml`. Enter `MONGO_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `FRONTEND_ORIGINS`, `DEMO_ACCESS_KEY`, and `DEMO_PASSWORD` in Render's environment settings. Use unique secrets and never commit them. `FRONTEND_ORIGINS` is a comma-separated list of the exact Vercel production and preview domains. After the first deploy, copy the service's `onrender.com` URL.
+3. In Vercel Project Settings → Environment Variables, set `VITE_API_BASE_URL` to the Render API URL and `VITE_DEMO_MODE=true`. Apply them to Preview and Production, then redeploy so Vite includes them in the frontend build. These `VITE_` variables are public configuration; never put secrets there.
+4. At demo sign-in, enter the private `DEMO_ACCESS_KEY`, then choose a persona. All personas use the configured `DEMO_PASSWORD`. The API seeds anonymous example reports only if Atlas has no reports. Citizen registration asks only for a username and password.
 
-Production refuses to start without MongoDB and strong JWT/admin credentials. It does not use the JSON fallback. `UPLOAD_DIR=/data/uploads` stores uploaded images on the Railway volume. Local development retains the JSON fallback and demo personas. To enable persona switching for a closed class demo, set `DEMO_MODE=true`, `DEMO_ACCESS_KEY` (at least 24 characters), and `DEMO_PASSWORD` (at least 12 characters) in Railway, then set `VITE_DEMO_MODE=true` in Vercel. The access key is prompted from the operator and is never baked into the frontend build; use only with a private class link.
+Production refuses to start without Atlas and strong JWT/admin credentials; it never falls back to the local JSON database. Uploaded photos are stored in GridFS and survive Render restarts. The Vercel site is public to anyone with the link; use a long, unguessable demo access key and do not reuse demo passwords elsewhere.
 
 ---
 
-## 👥 Default Demo Credentials
+## 👥 Demo Sign-in
 
-| Role | Email | Password |
-|---|---|---|
-| **Citizen** | `citizen@smartcity.gov` | `password123` |
-| **Municipal Admin** | `admin@smartcity.gov` | `admin123` |
-| **Roads Officer** | `officer.roads@smartcity.gov` | `officer123` |
-| **Sanitation Officer** | `officer.sanitation@smartcity.gov` | `officer123` |
-| **Electricity Officer** | `officer.electricity@smartcity.gov` | `officer123` |
-| **Water Supply Officer** | `officer.water@smartcity.gov` | `officer123` |
-
-These demo credentials are for local development only. The deployed app uses the administrator credentials configured in Railway. Production persona switching is off by default and can be protected with the class access key described above.
+The production role switcher uses the shared `DEMO_PASSWORD` configured in Render for each persona. The demo sign-in also requires the private `DEMO_ACCESS_KEY`. Never put either value in source code or a `VITE_` variable. Local development uses the sample credentials above; they are not valid in the deployed demo.

@@ -9,8 +9,8 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, status, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from ..database import users_col
-from ..models import UserRegister, UserLogin, UserResponse, TokenResponse
+from database import users_col
+from models import UserRegister, UserLogin, UserResponse, TokenResponse
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 

@@ -1,21 +1,25 @@
 import os
 import uuid
 import random
+import tempfile
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
+from fastapi.responses import Response
 from PIL import Image, ImageOps, UnidentifiedImageError
-from ..database import complaints_col, status_history_col, notifications_col, users_col
-from ..models import ComplaintCreate, StatusUpdate, DepartmentAssign, SupportComplaint
-from ..routers.auth import get_current_user, require_current_user, require_admin, require_officer_or_admin
-from ..ai_engine import analyze_issue, find_duplicate_issues
+from database import complaints_col, status_history_col, notifications_col, users_col, db, is_mongo_active
+from models import ComplaintCreate, StatusUpdate, DepartmentAssign, SupportComplaint
+from routers.auth import get_current_user, require_current_user, require_admin, require_officer_or_admin
+from ai_engine import analyze_issue, find_duplicate_issues
 
 router = APIRouter(prefix="/api/issues", tags=["Civic Issues"])
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 ALLOWED_IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 
-UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "uploads")))
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+DEFAULT_UPLOAD_DIR = "/tmp/civicconnect/uploads" if APP_ENV == "production" else os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
+UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", DEFAULT_UPLOAD_DIR))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "proofs"), exist_ok=True)
 
@@ -45,11 +49,42 @@ async def save_validated_image(file: UploadFile, prefix: str = "", subdir: str =
     except (UnidentifiedImageError, OSError, ValueError):
         raise HTTPException(status_code=400, detail="The uploaded file is not a valid image.")
     filename = f"{prefix}{uuid.uuid4().hex}{extension}"
+    # Hosted service filesystems can be temporary. Keep production uploads in
+    # Atlas GridFS beside the report records so they survive restarts.
+    if os.getenv("APP_ENV", "development").lower() == "production" and is_mongo_active and db is not None:
+        from gridfs import GridFSBucket
+        bucket = GridFSBucket(db, bucket_name="report_images")
+        with bucket.open_upload_stream(filename, metadata={"content_type": extension_to_content_type(extension), "subdir": subdir}) as stream:
+            stream.write(content)
+        return {"url": f"/api/issues/image/{filename}", "filename": filename}
+
     target_dir = os.path.join(UPLOAD_DIR, subdir)
     os.makedirs(target_dir, exist_ok=True)
     Path(target_dir, filename).write_bytes(content)
     path = f"/uploads/{subdir}/{filename}" if subdir else f"/uploads/{filename}"
     return {"url": path, "filename": filename}
+
+
+def extension_to_content_type(extension: str) -> str:
+    return {".jpg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}[extension]
+
+
+@router.get("/image/{filename}")
+def get_uploaded_image(filename: str):
+    """Serve a persisted production upload from Atlas GridFS."""
+    if os.getenv("APP_ENV", "development").lower() != "production" or not is_mongo_active or db is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+    if not filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=404, detail="Image not found")
+    from gridfs import GridFSBucket
+    bucket = GridFSBucket(db, bucket_name="report_images")
+    matches = bucket.find({"filename": filename}).sort("uploadDate", -1).limit(1)
+    item_info = next(iter(matches), None)
+    if item_info is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+    item = bucket.open_download_stream(item_info["_id"])
+    content_type = (item_info.get("metadata") or {}).get("content_type", "application/octet-stream")
+    return Response(content=item.read(), media_type=content_type, headers={"Cache-Control": "public, max-age=3600"})
 
 def generate_complaint_id() -> str:
     year = datetime.utcnow().year
@@ -162,21 +197,37 @@ def create_issue(
 
     # Local image path if uploaded
     local_img_path = None
+    temporary_image_path = None
     if req.image_url and req.image_url.startswith("/uploads/"):
         filename = req.image_url.replace("/uploads/", "")
         local_img_path = os.path.join(UPLOAD_DIR, filename)
+    elif req.image_url and req.image_url.startswith("/api/issues/image/") and is_mongo_active and db is not None:
+        filename = req.image_url.rsplit("/", 1)[-1]
+        from gridfs import GridFSBucket
+        bucket = GridFSBucket(db, bucket_name="report_images")
+        match = next(iter(bucket.find({"filename": filename}).sort("uploadDate", -1).limit(1)), None)
+        if match is not None:
+            download = bucket.open_download_stream(match["_id"])
+            with tempfile.NamedTemporaryFile(suffix=os.path.splitext(filename)[1], delete=False) as image_file:
+                image_file.write(download.read())
+                temporary_image_path = image_file.name
+            local_img_path = temporary_image_path
 
     # Run AI Analysis
-    ai_result = analyze_issue(
-        title=req.title,
-        description=req.description,
-        user_category=req.category,
-        image_path=local_img_path,
-        location_name=req.address,
-        latitude=req.latitude,
-        longitude=req.longitude,
-        nearby_reports_count=report_count
-    )
+    try:
+        ai_result = analyze_issue(
+            title=req.title,
+            description=req.description,
+            user_category=req.category,
+            image_path=local_img_path,
+            location_name=req.address,
+            latitude=req.latitude,
+            longitude=req.longitude,
+            nearby_reports_count=report_count
+        )
+    finally:
+        if temporary_image_path and os.path.exists(temporary_image_path):
+            os.unlink(temporary_image_path)
 
     complaint_id = generate_complaint_id()
     now_iso = datetime.utcnow().isoformat()
