@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2, Check } from 'lucide-react';
 import axios from 'axios';
+import { assetUrl } from '../lib/runtime';
 
 export const ImageUploader = ({ 
   imageUrl, 
@@ -57,7 +58,7 @@ export const ImageUploader = ({
       {imageUrl ? (
         <div className="relative rounded-xl border border-slate-200 overflow-hidden bg-slate-900 group max-w-md">
           <img 
-            src={imageUrl} 
+            src={assetUrl(imageUrl)}
             alt="Uploaded Preview" 
             className="w-full h-56 object-cover transition duration-200 group-hover:opacity-90"
           />

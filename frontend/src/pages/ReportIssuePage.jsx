@@ -38,10 +38,10 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
     title: '',
     category: 'Road Damage',
     description: '',
-    address: 'Indiranagar 100 Feet Road, Near Metro Pillar 42',
+    address: 'Near Itukulapalli, near Anantha Lakshmi Engineering College, Anantapur',
     landmark: '',
-    latitude: 12.9716,
-    longitude: 77.5946,
+    latitude: 14.5970078,
+    longitude: 77.6557271,
     image_url: ''
   });
 
@@ -180,10 +180,10 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
                     title: '',
                     category: 'Road Damage',
                     description: '',
-                    address: 'Indiranagar 100 Feet Road, Near Metro Pillar 42',
+                    address: 'Near Itukulapalli, near Anantha Lakshmi Engineering College, Anantapur',
                     landmark: '',
-                    latitude: 12.9716,
-                    longitude: 77.5946,
+                    latitude: 14.5970078,
+                    longitude: 77.6557271,
                     image_url: ''
                   });
                 }}
@@ -253,7 +253,7 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
               name="landmark"
               value={formData.landmark}
               onChange={handleInputChange}
-              placeholder="e.g. Opposite Metro Station Gate 2, near City Park"
+              placeholder="e.g. Near Itukulapalli bus stop, Anantapur"
               className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-smart-500 focus:border-smart-500 transition"
             />
           </div>
@@ -296,7 +296,7 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              placeholder="e.g. MG Road, Near Metro Pillar 142, Ward 12"
+              placeholder="e.g. Near Itukulapalli, Anantha Lakshmi Engineering College, Anantapur"
               required
               className="w-full text-sm pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-smart-500 focus:border-smart-500 transition"
             />

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { NotificationDropdown } from './NotificationDropdown';
+import { DEMO_MODE } from '../lib/runtime';
 
 export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
   const { user, logout, switchRole, unreadCount } = useAuth();
@@ -63,15 +64,15 @@ export const Navbar = ({ currentTab, setTab, onTrackComplaint }) => {
           {/* Quick Role Switcher */}
           <div className="relative">
             <button
-              onClick={() => setShowRoleMenu(!showRoleMenu)}
+              onClick={() => DEMO_MODE && setShowRoleMenu(!showRoleMenu)}
               className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-smart-300 px-2.5 py-0.5 rounded border border-slate-700 transition"
             >
               <Sparkles className="w-3 h-3 text-amber-400" />
               <span>Role: <strong className="text-white capitalize">{user ? (user.role === 'officer' ? `${user.department?.split(' ')[0]} Officer` : user.role) : 'Guest'}</strong></span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
+              {DEMO_MODE && <ChevronDown className="w-3 h-3 text-slate-400" />}
             </button>
 
-            {showRoleMenu && (
+            {DEMO_MODE && showRoleMenu && (
               <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-slate-200 text-slate-800 p-2 z-50 animate-in fade-in zoom-in-95">
                 <div className="px-2 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                   Switch Active Persona

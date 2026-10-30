@@ -23,7 +23,7 @@ A modern, responsive Smart City civic issue reporting portal and automated prior
 - **Spatial Duplicate Clustering**: Computes Haversine distance between new and active reports within 150m. If matching issues are found, reports are clustered (*"Reported by 9 citizens"*), elevating the issue's priority score.
 
 ### 3. Comprehensive Complaint Tracking
-- Search complaints by **Complaint ID** (`CC-2026-XXXX`), **Phone Number**, or **Email**.
+- Search complaints by **Complaint ID** (`CC-2026-XXXX`). Citizens can report and track a complaint ID without providing contact details.
 - Interactive 5-step visual progress timeline:
   `Submitted` $\to$ `AI Verified` $\to$ `Assigned` $\to$ `In Progress` $\to$ `Resolved`.
 - Citizen **"I Also Face This Issue"** crowd upvote button.
@@ -50,7 +50,7 @@ A modern, responsive Smart City civic issue reporting portal and automated prior
 |---|---|
 | **Frontend** | React 18, Vite, Tailwind CSS, Lucide Icons, Leaflet / React-Leaflet, Recharts, Canvas-Confetti |
 | **Backend** | Python 3, FastAPI, Uvicorn, Pydantic, Python-Jose (JWT), Passlib / Cryptography |
-| **Database** | MongoDB (`mongodb://localhost:27017`) with local document store fallback |
+| **Database** | MongoDB Atlas in production; local JSON fallback for development only |
 | **AI / Machine Learning** | Python Computer Vision (PIL/NumPy edge roughness & texture analysis) + NLP keyword extraction & Multi-factor Scoring Engine + Haversine spatial duplicate detector |
 
 ---
@@ -76,6 +76,17 @@ npm run dev
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 API Swagger Documentation is available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
+## Deploying to Vercel and Railway
+
+Vercel builds the React frontend using `vercel.json`. Railway builds the FastAPI API from `Dockerfile`; MongoDB Atlas stores persistent application data. One Railway replica and one MongoDB cluster are sufficient for this small class demo. Add a Railway volume mounted at `/data` so uploaded report images persist across restarts.
+
+1. Create a MongoDB Atlas database and copy its URI. Restrict network access to the Railway service where practical.
+2. Deploy this repository to Railway using `railway.json` and `Dockerfile`. Add a volume mounted at `/data`.
+3. Set the backend variables from `backend/.env.example` in Railway. Set `FRONTEND_ORIGINS` to the exact Vercel domain(s), plus a unique `JWT_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`. The administrator account is created on first start.
+4. Deploy this repository to Vercel. Set `VITE_API_BASE_URL` to the Railway public service URL. Leave `VITE_DEMO_MODE` unset or `false` unless you want the demo persona switcher visible.
+
+Production refuses to start without MongoDB and strong JWT/admin credentials. It does not use the JSON fallback. `UPLOAD_DIR=/data/uploads` stores uploaded images on the Railway volume. Local development retains the JSON fallback and demo personas. To enable persona switching for a closed class demo, set `DEMO_MODE=true`, `DEMO_ACCESS_KEY` (at least 24 characters), and `DEMO_PASSWORD` (at least 12 characters) in Railway, then set `VITE_DEMO_MODE=true` in Vercel. The access key is prompted from the operator and is never baked into the frontend build; use only with a private class link.
+
 ---
 
 ## 👥 Default Demo Credentials
@@ -89,4 +100,4 @@ API Swagger Documentation is available at [http://127.0.0.1:8000/docs](http://12
 | **Electricity Officer** | `officer.electricity@smartcity.gov` | `officer123` |
 | **Water Supply Officer** | `officer.water@smartcity.gov` | `officer123` |
 
-*(Note: You can also use the **"Role: [Active]"** dropdown in the top navbar for instant 1-click persona switching)*
+These demo credentials are for local development only. The deployed app uses the administrator credentials configured in Railway. Production persona switching is off by default and can be protected with the class access key described above.

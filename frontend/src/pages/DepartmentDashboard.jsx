@@ -21,6 +21,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { PriorityBadge } from '../components/PriorityBadge';
 import { StatusBadge } from '../components/StatusBadge';
+import { assetUrl } from '../lib/runtime';
 import { ImageUploader } from '../components/ImageUploader';
 
 const DEPARTMENTS = [
@@ -281,7 +282,7 @@ export const DepartmentDashboard = ({ setTab, onSelectComplaint }) => {
                 <div className="w-full md:w-56 h-40 rounded-xl overflow-hidden bg-slate-100 relative shrink-0">
                   {issue.image_url ? (
                     <img 
-                      src={issue.image_url} 
+                      src={assetUrl(issue.image_url)}
                       alt={issue.title} 
                       className="w-full h-full object-cover"
                     />
@@ -340,7 +341,7 @@ export const DepartmentDashboard = ({ setTab, onSelectComplaint }) => {
                         <span className="text-[11px] text-emerald-700">{issue.resolution_notes}</span>
                       </div>
                       <a 
-                        href={issue.resolution_proof_url} 
+                        href={assetUrl(issue.resolution_proof_url)}
                         target="_blank" 
                         rel="noreferrer"
                         className="text-xs font-bold text-emerald-800 underline shrink-0"

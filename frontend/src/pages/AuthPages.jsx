@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Building2, Sparkles, User, Lock, Mail, Phone, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Building2, Sparkles, User, Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { DEMO_MODE } from '../lib/runtime';
 
 export const AuthPages = ({ defaultMode = 'login', setTab }) => {
   const { login, register, switchRole } = useAuth();
@@ -11,11 +12,8 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
   const [password, setPassword] = useState('password123');
 
   // Register state
-  const [name, setName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
+  const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('citizen');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,11 +38,9 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
     setLoading(true);
     try {
       await register({
-        name,
-        email: regEmail,
+        name: 'Anonymous Citizen',
+        email: `${regUsername.trim().toLowerCase()}@citizen.local`,
         password: regPassword,
-        phone,
-        role
       });
       setTab('home');
     } catch (err) {
@@ -81,7 +77,7 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
       </div>
 
       {/* 1-Click Demo Login Box */}
-      <div className="bg-gradient-to-tr from-smart-50 to-indigo-50 border border-smart-200 rounded-2xl p-4 shadow-sm space-y-2.5">
+      {DEMO_MODE && <div className="bg-gradient-to-tr from-smart-50 to-indigo-50 border border-smart-200 rounded-2xl p-4 shadow-sm space-y-2.5">
         <div className="flex items-center gap-1.5 text-xs font-bold text-smart-800">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
           <span>Quick 1-Click Demo Personas (No Password Needed)</span>
@@ -120,7 +116,7 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
             <span className="block text-[10px] text-slate-400 font-normal">Meera Nair</span>
           </button>
         </div>
-      </div>
+      </div>}
 
       {/* Main Form */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -153,15 +149,15 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
         {isLogin ? (
           <form onSubmit={handleLoginSubmit} className="space-y-4 pt-2">
             <div className="space-y-1">
-              <label className="block text-xs font-semibold text-slate-700 uppercase">Email Address</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase">Email or Username</label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="name@smartcity.gov"
+                  placeholder="Email or username"
                   className="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-smart-500"
                 />
               </div>
@@ -193,44 +189,17 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
         ) : (
           <form onSubmit={handleRegisterSubmit} className="space-y-3 pt-2">
             <div className="space-y-1">
-              <label className="block text-xs font-semibold text-slate-700 uppercase">Full Name</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase">Username</label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={regUsername}
+                  onChange={(e) => setRegUsername(e.target.value.replace(/[^a-zA-Z0-9._-]/g, ''))}
                   required
-                  placeholder="e.g. Priya Sharma"
-                  className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-smart-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-slate-700 uppercase">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="email"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  required
-                  placeholder="priya@example.com"
-                  className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-smart-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-slate-700 uppercase">Phone Number</label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98765 00000"
+                  minLength={3}
+                  maxLength={24}
+                  placeholder="Choose a username"
                   className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-smart-500"
                 />
               </div>
@@ -245,7 +214,8 @@ export const AuthPages = ({ defaultMode = 'login', setTab }) => {
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   required
-                  placeholder="Minimum 6 characters"
+                  minLength={12}
+                  placeholder="At least 12 characters"
                   className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-smart-500"
                 />
               </div>
