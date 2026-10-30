@@ -1,0 +1,10 @@
+.git
+.env
+**/.env
+frontend
+node_modules
+**/node_modules
+uploads
+backend/local_store.json
+**/__pycache__
+*.py[cod]
