@@ -77,7 +77,16 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
       setAiAnalysisResult(res.data);
     } catch (err) {
       console.error('Error submitting issue:', err);
-      setError(err.response?.data?.detail || 'Failed to submit complaint. Please try again.');
+      const detail = err.response?.data?.detail;
+      const fallback = 'Failed to submit complaint. Please try again.';
+      const message = Array.isArray(detail)
+        ? detail.map(item => {
+            const field = Array.isArray(item?.loc) ? item.loc.filter(part => part !== 'body').join('.') : '';
+            const reason = typeof item?.msg === 'string' ? item.msg : 'Invalid value';
+            return field ? `${field}: ${reason}` : reason;
+          }).join(' ')
+        : typeof detail === 'string' ? detail : fallback;
+      setError(message || fallback);
     } finally {
       setAnalyzing(false);
     }
@@ -218,6 +227,8 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
           <input
             type="text"
             name="title"
+            minLength={5}
+            maxLength={140}
             value={formData.title}
             onChange={handleInputChange}
             placeholder="e.g. Large pothole near main road / Broken streetlight at 8th cross"
@@ -251,6 +262,7 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
             <input
               type="text"
               name="landmark"
+            maxLength={200}
               value={formData.landmark}
               onChange={handleInputChange}
               placeholder="e.g. Near Itukulapalli bus stop, Anantapur"
@@ -266,6 +278,8 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
           </label>
           <textarea
             name="description"
+            minLength={10}
+            maxLength={5000}
             rows="4"
             value={formData.description}
             onChange={handleInputChange}
@@ -294,6 +308,8 @@ export const ReportIssuePage = ({ setTab, onSelectComplaint }) => {
             <input
               type="text"
               name="address"
+            minLength={3}
+            maxLength={300}
               value={formData.address}
               onChange={handleInputChange}
               placeholder="e.g. Near Itukulapalli, Anantha Lakshmi Engineering College, Anantapur"
