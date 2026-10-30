@@ -41,17 +41,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return hmac.compare_digest(legacy, hashed_password or "")
 
 
-def require_admin(user: dict = Depends(require_current_user)) -> dict:
-    if user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Administrator access required.")
-    return user
-
-
-def require_officer_or_admin(user: dict = Depends(require_current_user)) -> dict:
-    if user.get("role") not in {"officer", "admin"}:
-        raise HTTPException(status_code=403, detail="Officer access required.")
-    return user
-
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -81,6 +70,18 @@ def require_current_user(user: Optional[dict] = Depends(get_current_user)) -> di
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required. Please log in."
         )
+    return user
+
+
+def require_admin(user: dict = Depends(require_current_user)) -> dict:
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Administrator access required.")
+    return user
+
+
+def require_officer_or_admin(user: dict = Depends(require_current_user)) -> dict:
+    if user.get("role") not in {"officer", "admin"}:
+        raise HTTPException(status_code=403, detail="Officer access required.")
     return user
 
 @router.post("/register", response_model=TokenResponse)
