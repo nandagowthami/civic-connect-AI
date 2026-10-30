@@ -209,7 +209,8 @@ def create_issue(
         bucket = GridFSBucket(db, bucket_name="report_images")
         match = next(iter(bucket.find({"filename": filename}).sort("uploadDate", -1).limit(1)), None)
         if match is not None:
-            download = bucket.open_download_stream(match["_id"])
+            # GridFS find() already returns a readable GridOut stream.
+            download = match
             with tempfile.NamedTemporaryFile(suffix=os.path.splitext(filename)[1], delete=False) as image_file:
                 image_file.write(download.read())
                 temporary_image_path = image_file.name
