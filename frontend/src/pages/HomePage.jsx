@@ -125,7 +125,7 @@ export const HomePage = ({ setTab, onSelectComplaint }) => {
                 <Activity className="w-4 h-4 text-smart-400" />
               </div>
               <div className="text-2xl font-bold text-white mt-1">
-                {stats?.total_complaints || 8}
+                {stats?.total_complaints ?? '—'}
               </div>
               <p className="text-[11px] text-slate-400 mt-0.5">Across 8 City Wards</p>
             </div>
@@ -136,9 +136,9 @@ export const HomePage = ({ setTab, onSelectComplaint }) => {
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               </div>
               <div className="text-2xl font-bold text-emerald-400 mt-1">
-                {stats?.resolved || 2}
+                {stats?.resolved ?? '—'}
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">{stats?.resolution_rate_percent || 25}% Resolution Rate</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">{stats ? `${stats.resolution_rate_percent}%` : '—'} Resolution Rate</p>
             </div>
 
             <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 backdrop-blur">
@@ -147,7 +147,7 @@ export const HomePage = ({ setTab, onSelectComplaint }) => {
                 <AlertTriangle className="w-4 h-4 text-rose-400" />
               </div>
               <div className="text-2xl font-bold text-rose-400 mt-1">
-                {stats?.high_priority || 3}
+                {stats?.high_priority ?? '—'}
               </div>
               <p className="text-[11px] text-slate-400 mt-0.5">Rapid Action Dispatched</p>
             </div>
@@ -158,7 +158,7 @@ export const HomePage = ({ setTab, onSelectComplaint }) => {
                 <Users className="w-4 h-4 text-sky-400" />
               </div>
               <div className="text-2xl font-bold text-sky-400 mt-1">
-                {stats?.total_citizen_voices || 48}
+                {stats?.total_citizen_voices ?? '—'}
               </div>
               <p className="text-[11px] text-slate-400 mt-0.5">Crowdsourced & Clustered</p>
             </div>
