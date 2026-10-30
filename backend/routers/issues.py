@@ -82,9 +82,11 @@ def get_uploaded_image(filename: str):
     item_info = next(iter(matches), None)
     if item_info is None:
         raise HTTPException(status_code=404, detail="Image not found")
-    item = bucket.open_download_stream(item_info["_id"])
-    content_type = (item_info.get("metadata") or {}).get("content_type", "application/octet-stream")
-    return Response(content=item.read(), media_type=content_type, headers={"Cache-Control": "public, max-age=3600"})
+    # GridFSBucket.find() yields a GridOut stream, not a dict. Read its
+    # metadata and bytes directly; indexing it as `item_info["_id"]` caused
+    # every persisted production image request to fail with HTTP 500.
+    content_type = (item_info.metadata or {}).get("content_type", "application/octet-stream")
+    return Response(content=item_info.read(), media_type=content_type, headers={"Cache-Control": "public, max-age=3600"})
 
 def generate_complaint_id() -> str:
     year = datetime.utcnow().year
