@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PriorityBadge } from '../components/PriorityBadge';
 import { StatusBadge } from '../components/StatusBadge';
+import { assetUrl } from '../lib/runtime';
 
 // Function to generate Leaflet custom colored pin icons
 const createPriorityIcon = (priority) => {
@@ -149,8 +150,8 @@ export const IssueMapPage = ({ setTab, onSelectComplaint }) => {
       {/* Fullscreen Map Container */}
       <div className="h-[600px] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-md relative">
         <MapContainer
-          center={[12.9716, 77.5946]}
-          zoom={13}
+          center={[14.5970078, 77.6557271]}
+          zoom={15}
           scrollWheelZoom={true}
           className="h-full w-full"
         >
@@ -177,7 +178,7 @@ export const IssueMapPage = ({ setTab, onSelectComplaint }) => {
                     {/* Thumbnail */}
                     {issue.image_url ? (
                       <img 
-                        src={issue.image_url} 
+                        src={assetUrl(issue.image_url)}
                         alt={issue.title} 
                         className="w-full h-32 object-cover rounded-lg border border-slate-200"
                       />
